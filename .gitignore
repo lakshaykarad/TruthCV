@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*.pdf
+!docs/*.pdf
+eval/data/*.json
+.DS_Store
+*.log
+
+docs/project.md
