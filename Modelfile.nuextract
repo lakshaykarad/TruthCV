@@ -1,0 +1,2 @@
+FROM hf.co/nimendraai/NuExtract-tiny-Resume-Data-Extractor:Q4_K_M
+PARAMETER temperature 0

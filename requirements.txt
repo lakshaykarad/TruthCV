@@ -17,6 +17,6 @@ sentence-transformers==3.2.1
 # PDF
 pypdf==5.0.1
 weasyprint==62.3
-
+pymupdf==1.28.2
 # Utilities
 python-dotenv==1.0.1
