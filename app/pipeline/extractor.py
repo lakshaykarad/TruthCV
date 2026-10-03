@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from pathlib import Path
 from typing import Any
 
-
 load_dotenv()
 
 logger = logging.getLogger(__name__)
@@ -14,26 +13,45 @@ EXTRACTION_MODEL = os.getenv("EXTRACTION_MODEL", "qwen2.5:3b")
 EXTRACTION_TIMEOUT = int(os.getenv("EXTRACTION_TIMEOUT", "120"))
 EXTRACTION_RETRIES = int(os.getenv("EXTRACTION_RETRIES", "2"))
 
-_PROMPT_PATH = Path(__file__).resolve().parents[2] / "ollama" / "prompts" / "extract_resume.txt"
+PROMPT_FILE_PATH = Path(__file__).resolve().parents[2] / "ollama" / "prompts" / "extract_resume.txt"
 
-def _load_prompt_template() -> str:
+def load_prompt_template() -> str:
     """Load the NuExtract prompt template once and cache it."""
-    if not _PROMPT_PATH.exists():
-        raise FileNotFoundError(f"Prompt template not found: {_PROMPT_PATH}")
-    return _PROMPT_PATH.read_text(encoding="utf-8")
+    if not PROMPT_FILE_PATH.exists():
+        raise FileNotFoundError(f"Prompt template not found: {PROMPT_FILE_PATH}")
+    return PROMPT_FILE_PATH.read_text(encoding="utf-8")
 
-_PROMPT_TEMPLATE = _load_prompt_template()
+RESUME_EXTRACTION_PROMPT = load_prompt_template()
 
-_END_TOKEN_RE = re.compile(r"<\|end-output\|>.*", re.DOTALL)
+END_OUTPUT_PATTERN = re.compile(r"<\|end-output\|>.*", re.DOTALL)
 
-def _clean_model_output(raw : str) -> str:
+def _clean_model_output(raw_model_response : str) -> str:
     """Strip NuExtract artifacts before json.loads()."""
-    raw = _END_TOKEN_RE.sub("",raw)
-    raw = raw.replace("<|end-output|>", "").strip()
+    raw_model_response = END_OUTPUT_PATTERN .sub("",raw_model_response)
+    raw_model_response = raw_model_response.replace("<|end-output|>", "").strip()
     
-    if raw.startswith("```"):
-        raw = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw, flags=re.DOTALL).strip()
-    return raw
+    if raw_model_response.startswith("```"):
+        raw_model_response = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw_model_response, flags=re.DOTALL).strip()
+    return raw_model_response
+
+SUSPICIOUS_EXPERIENCE = re.compile(
+    r"(self[- ]directed|project portfolio|personal project|freelance|"
+    r"self[- ]employed|independent)",
+    re.IGNORECASE,
+)
+
+def _drop_hallucinated_experience(data: dict) -> dict:
+    clean_json_text = []
+    for exp in data.get("experience") or []:
+        if not isinstance(exp, dict):
+            continue
+        experience = f"{exp.get('company', '')} {exp.get('duration', '')}"
+        if SUSPICIOUS_EXPERIENCE.search(experience):
+            logger.warning("Dropping hallucinated experience: %s", experience)
+            continue
+        clean_json_text.append(exp)
+    data["experience"] = clean_json_text
+    return data
 
 def _coerce_to_schema(data: dict[str, Any]) -> dict[str, Any]:
     list_fields = [
@@ -70,8 +88,8 @@ def _call_ollama(prompt : str) -> str:
                 "options": {
                     "temperature": 0,   
                     "top_k": 10,
-                    "num_predict": 4096,
-                    "num_ctx": 8192,   
+                    "num_predict": 8192,
+                    "num_ctx": 16384,   
                 },
             },
             timeout=EXTRACTION_TIMEOUT,
@@ -93,7 +111,7 @@ def extract_resume_json(resume_text : str) -> dict[str,Any]:
     if not resume_text or not resume_text.strip():
         raise ValueError("Empty resume text; nothing to extract.")
     
-    prompt = _PROMPT_TEMPLATE.replace("{{RESUME_TEXT}}", resume_text)
+    prompt = RESUME_EXTRACTION_PROMPT.replace("{{RESUME_TEXT}}", resume_text)
     
     last_error : Exception | None = None
     
@@ -116,8 +134,7 @@ def extract_resume_json(resume_text : str) -> dict[str,Any]:
             logger.warning("Non-dict JSON on attempt %d", attempt)
             continue
         
-        return _coerce_to_schema(data)
-    
+        return _drop_hallucinated_experience(_coerce_to_schema(data))
    
     raise ValueError(
         f"NuExtract failed to return valid JSON after {EXTRACTION_RETRIES} attempts. "
