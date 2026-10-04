@@ -22,6 +22,7 @@ class User(Base):
     __tablename__ = "users"
     id : Mapped[int] = mapped_column(primary_key=True)
     email : Mapped[str] = mapped_column(String(256), nullable=True) #at producation we can set it as false for testing it's ok to go with this.
+    full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at : Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     resumes : Mapped[list["Resume"]] = relationship(
         back_populates="user",cascade="all, delete-orphan"
