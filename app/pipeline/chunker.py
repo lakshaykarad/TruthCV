@@ -6,7 +6,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 MAX_CHUNK_CHARS = 400
-MIN_CHUNK_CHARS = 15
+MIN_CHUNK_CHARS = 3
  
 _JUNK_PATTERNS = re.compile(
     r"^(none specified|not specified|n/?a|none|null|unknown|not mentioned|"
