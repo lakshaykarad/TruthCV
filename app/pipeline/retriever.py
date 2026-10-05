@@ -60,7 +60,12 @@ def find_similar_chunks(
     if not query_text or not query_text.strip():
         return []
 
-    query_vector = embed_text(query_text)
+    if len(query_text.split()) <= 2:
+        query_text_for_embedding = f"Experience with {query_text}"
+    else:
+        query_text_for_embedding = query_text
+
+    query_vector = embed_text(query_text_for_embedding)
     
     statement = (
         select(

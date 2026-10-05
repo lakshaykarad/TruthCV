@@ -1,0 +1,163 @@
+from __future__ import annotations
+
+from typing import Any 
+import logging
+
+from sqlalchemy.orm import Session
+from app.pipeline.retriever  import find_similar_chunks
+
+logger = logging.getLogger(__name__)
+
+STRONG_THRESHOLD = 0.70
+PARTIAL_THRESHOLD = 0.50
+WEAK_THRESHOLD = 0.35
+
+SHOULD_APPLY_THRESHOLD = 60
+
+EVIDENCE_TOP_K = 3
+
+
+def classify_tier(score : float) -> str:
+    if score >= STRONG_THRESHOLD:
+        return "matched"
+    if score >= PARTIAL_THRESHOLD:
+        return "partial"
+    if score >= WEAK_THRESHOLD:
+        return "weak"
+    return "missing"
+
+
+def score_one_skill(
+    db : Session,
+    resume_id : int,
+    skill : str
+) -> dict[str, Any] :
+    matches = find_similar_chunks(
+        db,
+        resume_id,
+        skill,
+        top_k=EVIDENCE_TOP_K,
+        min_score=WEAK_THRESHOLD
+    )
+    
+    if not matches:
+        return {
+            "skill": skill,
+            "score": 0.0,
+            "tier": "missing",
+            "evidence": [],
+        }
+    
+    best = matches[0]
+    
+    evidence = [
+        {
+            "score": m["score"],
+            "chunk_type": m["type"],
+            "evidence_text": m["text"],
+        }for m in matches
+    ] # we can use loop here by making evidence as list []
+    
+    return {
+        "skill" : skill,
+        "score" : best["score"],
+        "tier" : classify_tier(best["score"]),
+        "evidence" : evidence
+    }
+    
+    
+    
+def score_skill_list(
+    db : Session,
+    resume_id : int,
+    skills : list[str]
+) -> dict[str, list[dict[str,Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = {
+        "matched": [],
+        "partial": [],
+        "weak": [],
+        "missing": [],
+    }
+    
+    for skill in skills:
+        if not skill or not skill.strip():
+            continue
+        result = score_one_skill(db, resume_id, skill)
+        grouped[result["tier"]].append(result)
+
+    return grouped
+
+def score_match(
+    db: Session,
+    resume_id: int,
+    jd_json: dict[str, Any],
+) -> dict[str, Any]: 
+    
+
+    required_skills = jd_json.get("required_skills") or []
+    preferred_skills = jd_json.get("preferred_skills") or []
+ 
+    required_report = score_skill_list(db, resume_id, required_skills)
+    preferred_report = score_skill_list(db, resume_id, preferred_skills)
+    
+    
+    required_total = len(required_skills)
+    required_matched = len(required_report["matched"])
+    required_partial = len(required_report["partial"])
+    required_strong_enough = required_matched + required_partial
+  
+    if required_total == 0:
+        match_percent = 0
+    else:
+        match_percent = round(required_strong_enough / required_total * 100)
+
+    should_apply = match_percent >= SHOULD_APPLY_THRESHOLD
+
+    preferred_matched = len(preferred_report["matched"]) + len(preferred_report["partial"])
+    
+    logger.info(
+        "Match: %d%% (%d/%d required), should_apply=%s",
+        match_percent, required_strong_enough, required_total, should_apply,
+    )
+    
+    return {
+        "match_percent": match_percent,
+        "should_apply": should_apply,
+        "required": required_report,
+        "preferred": preferred_report,
+        "counts": {
+            "required_total": required_total,
+            "required_matched": required_matched,
+            "required_partial": required_partial,
+            "preferred_total": len(preferred_skills),
+            "preferred_matched": preferred_matched,
+        },
+    } 
+ 
+if __name__ == "__main__":
+    import json
+    import logging as _log
+
+    from app.db.queries import get_or_create_user, get_primary_resume
+    from app.db.session import get_session
+
+    _log.basicConfig(level=_log.INFO)
+
+    # A sample JD to test against (same as scripts/test_jd.py)
+    sample_jd = {
+        "title": "Backend Engineer",
+        "company": "Razorpay",
+        "required_skills": ["Python", "FastAPI", "PostgreSQL", "Redis", "Docker"],
+        "preferred_skills": ["AWS", "Kubernetes", "fintech"],
+    }
+
+    with get_session() as db:
+        user = get_or_create_user(db, "test@truthcv.com")
+        resume = get_primary_resume(db, user.id)
+        if resume is None:
+            print("No primary resume found. Upload one first.")
+            raise SystemExit(1)
+
+        report = score_match(db, resume.id, sample_jd)
+
+    print(json.dumps(report, indent=2, ensure_ascii=False))

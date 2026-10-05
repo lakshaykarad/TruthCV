@@ -14,6 +14,8 @@ EXTRACTION_TIMEOUT = int(os.getenv("EXTRACTION_TIMEOUT", "120"))
 EXTRACTION_RETRIES = int(os.getenv("EXTRACTION_RETRIES", "2"))
 
 PROMPT_DIR = Path(__file__).resolve().parents[2] / "ollama" / "prompts" 
+PLACEHOLDERS = ("{{TEXT}}", "{{RESUME_TEXT}}", "{{JD_TEXT}}")
+
 
 def load_prompt_template(prompt_name: str) -> str:
     
@@ -24,7 +26,7 @@ def load_prompt_template(prompt_name: str) -> str:
         raise FileNotFoundError(f"Prompt template not found: {prompt_name}")
     return prompt_path.read_text(encoding="utf-8")
 
- 
+
 END_OUTPUT_PATTERN = re.compile(r"<\|end-output\|>.*", re.DOTALL)
 
 def _clean_model_output(raw_model_response : str) -> str:
@@ -131,14 +133,14 @@ def _call_ollama(prompt : str) -> str:
 
 def extract_resume_json(resume_text: str) -> dict[str, Any]:
     """Wrapper: extract resume JSON. Backwards-compatible with old callers."""
-    return extract_json(resume_text, prompt_name="resume")
+    return _extract(resume_text, prompt_name="resume")
 
 def extract_jd_json(jd_text: str) -> dict[str, Any]:
     """Wrapper: extract job-description JSON."""
-    return extract_json(jd_text, prompt_name="jd")
+    return _extract(jd_text, prompt_name="jd")
 
 
-def extract_json(text: str, prompt_name: str = "resume") -> dict[str, Any]:
+def _extract(text: str, prompt_name: str) -> dict[str, Any]:
     """Send text (resume or JD) to the extraction and return a validated dict.
 
     Raises:
@@ -151,8 +153,19 @@ def extract_json(text: str, prompt_name: str = "resume") -> dict[str, Any]:
      
     prompt_template = load_prompt_template(prompt_name)
  
-    prompt = prompt_template.replace("{{TEXT}}", text)
 
+    prompt = None
+    for placeholder in PLACEHOLDERS:
+        if placeholder in prompt_template:
+            prompt = prompt_template.replace(placeholder, text)
+            break
+
+    if prompt is None:
+        raise ValueError(
+            f"No placeholder ({', '.join(PLACEHOLDERS)}) found in "
+            f"extract_{prompt_name}.txt"
+        )
+    
     last_error : Exception | None = None
     
     for attempt in range(1, EXTRACTION_RETRIES + 1):
@@ -175,7 +188,7 @@ def extract_json(text: str, prompt_name: str = "resume") -> dict[str, Any]:
             continue
         
         if prompt_name == "resume":
-            return _drop_hallucinated_experience(_coerce_resume_schema(data=data))
+            return _drop_hallucinated_experience(_coerce_resume_schema(data))
         else:
             return _coerce_jd_schema(data=data)
    

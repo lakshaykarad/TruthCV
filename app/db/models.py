@@ -73,7 +73,6 @@ class Resume(Base):
     def __repr__(self) -> str:
         return f"<Resume id={self.id} file={self.filename!r} primary={self.is_primary}>"
 
-
  
 class Chunk(Base):
     __tablename__ = "chunks"
