@@ -82,7 +82,25 @@ def embed_chunks(chunks : list[dict[str : Any]]) -> list[dict[str : Any]]:
     return chunks
 
 
-# ---------- Smoke test ----------
+def embed_text(text : str) -> list[float]:
+    
+    if not text or not text.strip():
+        raise ValueError("Cannot embed empty text")
+    
+    vector = model.encode(
+        [text],
+        device=device,
+        normalize_embeddings=True,
+        show_progress_bar=False
+    )[0]
+    
+    if device == "cuda":
+        torch.cuda.empty_cache()
+        
+    return vector.tolist()
+    
+    
+ 
 if __name__ == "__main__":
     import json
     import sys
