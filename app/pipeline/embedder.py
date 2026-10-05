@@ -99,8 +99,6 @@ def embed_text(text : str) -> list[float]:
         
     return vector.tolist()
     
-    
- 
 if __name__ == "__main__":
     import json
     import sys

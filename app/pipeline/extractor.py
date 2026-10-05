@@ -13,16 +13,18 @@ EXTRACTION_MODEL = os.getenv("EXTRACTION_MODEL", "qwen2.5:3b")
 EXTRACTION_TIMEOUT = int(os.getenv("EXTRACTION_TIMEOUT", "120"))
 EXTRACTION_RETRIES = int(os.getenv("EXTRACTION_RETRIES", "2"))
 
-PROMPT_FILE_PATH = Path(__file__).resolve().parents[2] / "ollama" / "prompts" / "extract_resume.txt"
+PROMPT_DIR = Path(__file__).resolve().parents[2] / "ollama" / "prompts" 
 
-def load_prompt_template() -> str:
-    """Load the NuExtract prompt template once and cache it."""
-    if not PROMPT_FILE_PATH.exists():
-        raise FileNotFoundError(f"Prompt template not found: {PROMPT_FILE_PATH}")
-    return PROMPT_FILE_PATH.read_text(encoding="utf-8")
+def load_prompt_template(prompt_name: str) -> str:
+    
+    """Load the Extraction prompt template once and cache it."""
+    prompt_path = PROMPT_DIR / f"extract_{prompt_name}.txt"
+    
+    if not prompt_path.exists():
+        raise FileNotFoundError(f"Prompt template not found: {prompt_name}")
+    return prompt_path.read_text(encoding="utf-8")
 
-RESUME_EXTRACTION_PROMPT = load_prompt_template()
-
+ 
 END_OUTPUT_PATTERN = re.compile(r"<\|end-output\|>.*", re.DOTALL)
 
 def _clean_model_output(raw_model_response : str) -> str:
@@ -41,6 +43,10 @@ SUSPICIOUS_EXPERIENCE = re.compile(
 )
 
 def _drop_hallucinated_experience(data: dict) -> dict:
+    
+    if "experience" not in data:
+        return data
+     
     clean_json_text = []
     for exp in data.get("experience") or []:
         if not isinstance(exp, dict):
@@ -53,12 +59,12 @@ def _drop_hallucinated_experience(data: dict) -> dict:
     data["experience"] = clean_json_text
     return data
 
-def _coerce_to_schema(data: dict[str, Any]) -> dict[str, Any]:
+def _coerce_resume_schema(data: dict[str, Any]) -> dict[str, Any]:
     list_fields = [
         "skills", "experience", "projects", 
         "education", "achievements", "other_details", "links"
     ]
-    scalar_fields = ["name", "email", "phone"]
+    scalar_fields = ["name", "email", "phone", "website"]
 
     for field in list_fields:
         val = data.get(field)
@@ -74,6 +80,29 @@ def _coerce_to_schema(data: dict[str, Any]) -> dict[str, Any]:
 
     return data
 
+ 
+def _coerce_jd_schema(data: dict[str, Any]) -> dict[str, Any]:
+    list_fields = [
+        "required_skills",
+        "preferred_skills",
+        "responsibilities",
+        "qualifications",
+    ]
+    scalar_fields = ["title", "company", "location"]
+
+    for field in list_fields:
+        val = data.get(field)
+        if val is None:
+            data[field] = []
+        elif not isinstance(val, list):
+            data[field] = [val]
+
+    for field in scalar_fields:
+        val = data.get(field)
+        if val is not None and not isinstance(val, str):
+            data[field] = str(val)
+
+    return data
 
 def _call_ollama(prompt : str) -> str:
     "Single HTTP call to Ollama. Returns the raw 'response' string."
@@ -100,23 +129,34 @@ def _call_ollama(prompt : str) -> str:
     
     return resp.json().get("response","")
 
-def extract_resume_json(resume_text : str) -> dict[str,Any]:
-    """Send resume text to the extraction LLM and return a validated dict.
+def extract_resume_json(resume_text: str) -> dict[str, Any]:
+    """Wrapper: extract resume JSON. Backwards-compatible with old callers."""
+    return extract_json(resume_text, prompt_name="resume")
+
+def extract_jd_json(jd_text: str) -> dict[str, Any]:
+    """Wrapper: extract job-description JSON."""
+    return extract_json(jd_text, prompt_name="jd")
+
+
+def extract_json(text: str, prompt_name: str = "resume") -> dict[str, Any]:
+    """Send text (resume or JD) to the extraction and return a validated dict.
 
     Raises:
         ValueError - if the model never returns parseable JSON after retries.
         RuntimeError - if Ollama itself is unreachable / errors out.
     """
 
-    if not resume_text or not resume_text.strip():
+    if not text or not text.strip():
         raise ValueError("Empty resume text; nothing to extract.")
-    
-    prompt = RESUME_EXTRACTION_PROMPT.replace("{{RESUME_TEXT}}", resume_text)
-    
+     
+    prompt_template = load_prompt_template(prompt_name)
+ 
+    prompt = prompt_template.replace("{{TEXT}}", text)
+
     last_error : Exception | None = None
     
     for attempt in range(1, EXTRACTION_RETRIES + 1):
-        logger.info("NuExtract attempt %d/%d", attempt, EXTRACTION_RETRIES)
+        logger.info("Extraction attempt %d/%d (prompt=%s)", attempt, EXTRACTION_RETRIES, prompt_name)
         
         raw = _call_ollama(prompt)
         cleaned = _clean_model_output(raw)
@@ -134,10 +174,13 @@ def extract_resume_json(resume_text : str) -> dict[str,Any]:
             logger.warning("Non-dict JSON on attempt %d", attempt)
             continue
         
-        return _drop_hallucinated_experience(_coerce_to_schema(data))
+        if prompt_name == "resume":
+            return _drop_hallucinated_experience(_coerce_resume_schema(data=data))
+        else:
+            return _coerce_jd_schema(data=data)
    
     raise ValueError(
-        f"NuExtract failed to return valid JSON after {EXTRACTION_RETRIES} attempts. "
+        f"Extraction failed to return valid JSON after {EXTRACTION_RETRIES} attempts. "
         f"Last error: {last_error}"
     )
     
