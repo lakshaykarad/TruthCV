@@ -11,7 +11,7 @@ from sqlalchemy.orm import (DeclarativeBase,Mapped,mapped_column,relationship)
 
 logger = logging.getLogger(__name__)
 
-EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", "384"))
+EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", "768"))
 
 # When you delete the parent item, the child item is also deleted automatically
 

@@ -1,19 +1,20 @@
 import os,logging 
 import torch
+import requests
 from typing import Any
-from dotenv import load_dotenv
-from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv 
 
 load_dotenv() 
 print(torch.cuda.is_available())   # True or False?
 print(torch.cuda.device_count())   # How many GPUs?
 logger = logging.getLogger(__name__)
 
-MODEL_NAME = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
-EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", "384")) 
+OLLAMA_HOST        = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+MODEL_NAME = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
+EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", "768")) 
 MAX_BATCH_SIZE = 32 
 
-# select model if GPU not availablle run the model on CPU
+# select model if GPU not availablle run the model on CPU   
 def get_device() -> str:
     if torch.cuda.is_available():
         logger.info("Using GPU for embeddings")
@@ -22,28 +23,28 @@ def get_device() -> str:
     return "cpu"
 
 # Load Model
-def load_model(device : str) -> SentenceTransformer:
+def load_model(text_list: list[str]) -> list[list[float]]:
     try:
-        model = SentenceTransformer(MODEL_NAME,device=device)
-    except Exception as e:
-        raise RuntimeError(
-            F"Could not load embedding model '{MODEL_NAME}' : {e} "
+        resp = requests.post(
+            f"{OLLAMA_HOST}/api/embed",
+            json={"model": MODEL_NAME, "input": text_list},
+            timeout=30,
         )
-    
-    logger.info("Loaded model '%s (dim=%d, device=%s)",
-                MODEL_NAME, EMBEDDING_DIM, device)
-    return model
+        resp.raise_for_status()
+        return resp.json()["embeddings"]
+    except Exception as e:
+        raise RuntimeError(f"Could not load embedding model '{MODEL_NAME}' : {e}")
 
 
-device = get_device()
-model = load_model(device=device)
+device = get_device() 
 
 def embed_chunks(chunks : list[dict[str : Any]]) -> list[dict[str : Any]]:
     if not chunks:
         logger.warning("embed_chunks called with empty list")
         return []
     
-    texts = [chunk.get("text", "") for chunk in chunks]
+    texts = [f"search_document: {chunk.get('text', '')}" for chunk in chunks]
+
     texts = [t if t.strip() else "empty" for t in texts]
 
     # use only batch that we need batch size is 20 we don't need to use batch size 32
@@ -51,34 +52,26 @@ def embed_chunks(chunks : list[dict[str : Any]]) -> list[dict[str : Any]]:
     
     logger.info("Embedding %d chunks (batch_size=%d, device=%s)", len(texts), batch_size, device)
     
+    all_vectors = []
+    
+    # Process through the list in batches
     try:
-        vectors = model.encode(
-            texts,
-            device=device,
-            batch_size=batch_size,
-            normalize_embeddings=True,
-            show_progress_bar=False
-        )
+        vectors = []
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i+batch_size]
+            batch_vectors = load_model(batch)
+            vectors.extend(batch_vectors)
     except RuntimeError as e:
-        logger.error("Encoding failed on %s: %s", device, e)
-        if device == "cuda":
-            logger.warning("Retrying on CPU...")
-            vectors = model.encode(
-                texts,
-                device="cpu",
-                batch_size=batch_size,
-                normalize_embeddings=True   
-            )
-        else:
-            raise
+        logger.error("Encoding failed: %s", e)
+        raise
         
     for chunk, vector in zip(chunks, vectors):
-        chunk["embedding"] = vector.tolist()
+        chunk["embedding"] = vector
         
     if device == "cuda":
         torch.cuda.empty_cache()
     
-    logger.info("Embedding done: shape: %s", vectors.shape)
+    logger.info("Embedding done: %d chunks", len(vectors))
     return chunks
 
 
@@ -87,20 +80,14 @@ def embed_text(text : str) -> list[float]:
     if not text or not text.strip():
         raise ValueError("Cannot embed empty text")
     
-    vector = model.encode(
-        [text],
-        device=device,
-        normalize_embeddings=True,
-        show_progress_bar=False
-    )[0]
-    
+    vectors = load_model([text])
+
     if device == "cuda":
         torch.cuda.empty_cache()
         
-    return vector.tolist()
+    return vectors[0]
     
 if __name__ == "__main__":
-    import json
     import sys
 
     from app.pipeline.pdf_reader import read_pdf
@@ -115,11 +102,9 @@ if __name__ == "__main__":
     resume = extract_resume_json(read_pdf(pdf_path))
     chunks = chunk_resume(resume)
     embedded = embed_chunks(chunks)
-
-    # Print a short preview (384 floats is too long to print whole)
+ 
     first = embedded[0]
     print(f"\nFirst chunk text: {first['text'][:80]}...")
     print(f"Embedding length: {len(first['embedding'])}")
     print(f"Embedding preview: {first['embedding'][:5]}...")
     print(f"\nTotal chunks embedded: {len(embedded)}")
-    

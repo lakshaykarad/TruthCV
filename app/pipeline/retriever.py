@@ -61,7 +61,8 @@ def find_similar_chunks(
         return []
 
     if len(query_text.split()) <= 2:
-        query_text_for_embedding = f"Experience with {query_text}"
+        query_text_for_embedding = f"search_query: {query_text}"
+
     else:
         query_text_for_embedding = query_text
 

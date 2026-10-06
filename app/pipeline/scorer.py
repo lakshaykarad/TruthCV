@@ -8,11 +8,10 @@ from app.pipeline.retriever  import find_similar_chunks
 
 logger = logging.getLogger(__name__)
 
-STRONG_THRESHOLD = 0.70
-PARTIAL_THRESHOLD = 0.50
-WEAK_THRESHOLD = 0.35
-
-SHOULD_APPLY_THRESHOLD = 60
+STRONG_THRESHOLD = 0.60   # was 0.70
+PARTIAL_THRESHOLD = 0.50  # same
+WEAK_THRESHOLD = 0.40     # was 0.35
+SHOULD_APPLY_THRESHOLD = 60  # same
 
 EVIDENCE_TOP_K = 3
 

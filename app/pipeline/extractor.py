@@ -153,7 +153,6 @@ def _extract(text: str, prompt_name: str) -> dict[str, Any]:
      
     prompt_template = load_prompt_template(prompt_name)
  
-
     prompt = None
     for placeholder in PLACEHOLDERS:
         if placeholder in prompt_template:
