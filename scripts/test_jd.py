@@ -33,10 +33,7 @@ Responsibilities:
 Qualifications:
 - Bachelor's degree in Computer Science or equivalent
 - Strong problem-solving skills
-
-
-
-
+ 
 """
 
 result = extract_jd_json(jd_text)

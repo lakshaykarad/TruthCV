@@ -8,11 +8,10 @@ from app.pipeline.retriever  import find_similar_chunks
 
 logger = logging.getLogger(__name__)
 
-STRONG_THRESHOLD = 0.60   # was 0.70
-PARTIAL_THRESHOLD = 0.50  # same
-WEAK_THRESHOLD = 0.40     # was 0.35
-SHOULD_APPLY_THRESHOLD = 60  # same
-
+STRONG_THRESHOLD = 0.60   
+PARTIAL_THRESHOLD = 0.50
+WEAK_THRESHOLD = 0.40    
+SHOULD_APPLY_THRESHOLD = 60
 EVIDENCE_TOP_K = 3
 
 
@@ -25,6 +24,11 @@ def classify_tier(score : float) -> str:
         return "weak"
     return "missing"
 
+def skill_appears_in_text(skill: str, text: str) -> bool:
+     
+    if not skill or not text:
+        return False
+    return skill.lower() in text.lower()
 
 def score_one_skill(
     db : Session,
@@ -57,6 +61,17 @@ def score_one_skill(
         }for m in matches
     ] # we can use loop here by making evidence as list []
     
+    if not skill_appears_in_text(skill, best["text"]):
+        logger.debug(
+        "False positive: skill '%s' not in chunk '%s...' (score %.3f)",
+        skill, best["text"][:50], best["score"],
+        )
+        return {
+        "skill": skill,
+        "score": best["score"],
+        "tier": "missing",
+        "evidence": [],   # ← was evidence, now empty
+        }
     return {
         "skill" : skill,
         "score" : best["score"],
@@ -98,7 +113,8 @@ def score_match(
  
     required_report = score_skill_list(db, resume_id, required_skills)
     preferred_report = score_skill_list(db, resume_id, preferred_skills)
-    
+    qualifications = jd_json.get("qualifications") or []
+
     
     required_total = len(required_skills)
     required_matched = len(required_report["matched"])
@@ -120,10 +136,11 @@ def score_match(
     )
     
     return {
-        "match_percent": match_percent,
+        "required_skills_match_percent": match_percent,
         "should_apply": should_apply,
         "required": required_report,
         "preferred": preferred_report,
+        "qualifications": qualifications,
         "counts": {
             "required_total": required_total,
             "required_matched": required_matched,
@@ -131,6 +148,11 @@ def score_match(
             "preferred_total": len(preferred_skills),
             "preferred_matched": preferred_matched,
         },
+        "note": (
+            "Match % covers required skills only. "
+            "Qualifications (years, degrees) are not scored — "
+            "review them manually."
+        ),
     } 
  
 if __name__ == "__main__":
