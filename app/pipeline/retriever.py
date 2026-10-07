@@ -1,7 +1,3 @@
-
-"""Find the most relevant chunks for a query
-Instead of sending all 24 resume chunks to the LLM, we send only the 5 most relevant. Same answer, less cost, better focus.
-"""
 from __future__ import annotations
 
 import logging
@@ -18,7 +14,6 @@ logger = logging.getLogger(__name__)
 DEFAULT_TOP_K = 5 # I JUST WANT ONLY TOP 5 K CHUNKS THAT MATCH WITH OUR REQUIRMENTS
 MIN_SIMILARITY = 0.4 
 
-
 # Converts one Chunk Python dict
 def _chunk_to_dict(chunk : Chunk, score : float) ->dict[str,Any]:
     return {
@@ -28,7 +23,6 @@ def _chunk_to_dict(chunk : Chunk, score : float) ->dict[str,Any]:
         "metadata" : chunk.chunk_metadata,
         "score" : round(score, 4)
     }
-
 
 def find_similar_chunks_for_user(
     db: Session,
@@ -91,7 +85,6 @@ def find_similar_chunks(
         query_text[:30], len(results), top_k, min_score,
     )
     return results
-
 
 def find_chunks_for_skills(
     db: Session,

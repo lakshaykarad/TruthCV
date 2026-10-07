@@ -1,0 +1,192 @@
+You are tailoring a resume. Output ONLY valid JSON matching the schema below.
+
+### RULES
+1. Change "tailored_title" to the JD's exact title.
+2. Write a 2-3 sentence summary focused on the JD.
+3. Reorder skills: JD-matched skills first, grouped by category.
+   DROP skill categories that have ZERO overlap with the JD's
+   required_skills and preferred_skills. For a backend JD, this means
+   dropping Mobile, Frontend, AI, and Design categories.
+
+   EXCEPTION: If USER_EXTRAS explicitly asks to include other skills,
+   keep those categories.
+4. Pick max 3 projects (most JD-relevant). Bullets:
+   - Big project (many bullets in original): up to 6 bullets.
+   - Medium: 4 bullets.
+   - Small: 2-3 bullets.
+   - Flatten sub-sections into one list.
+5. Experience: keep reverse-chronological. Max 4 bullets per role.
+   If the input resume has "experience": [], the output MUST have
+   "experience": []. Do NOT invent a placeholder entry.
+6. Education: unchanged.
+7. Achievements: top 4-5 most relevant.
+8. NEVER invent skills, metrics, companies, or achievements.
+9. If the JD is backend-only, do NOT include frontend/mobile/AI bullets
+   in project descriptions unless they directly relate to backend work.
+   Skills categories (in "skills") stay — just reorder them.
+10. NEVER state years of experience (e.g. "2+ years", "3 years") unless
+    the resume explicitly mentions a duration with dates that add up to
+    that number. If the resume doesn't show a work history, do NOT
+    include any duration claim.
+11. In the "summary", do NOT include numbers of years. Describe
+    experience by project names and skills, not by duration.
+12. COPY all contact fields (name, email, phone, location, website, links)
+    UNCHANGED from the INPUT RESUME JSON.
+    - If the input value is NOT null, the output value MUST NOT be null.
+    - If the input value IS null, use null in the output.
+    - Do NOT invent values that aren't in the input.
+13. For each project, COPY the "links" array UNCHANGED from the input.
+    - Deduplicate: if the input has duplicate URLs, keep only one of each.
+    - If the input project has no links, use [].
+14. The "links" array at the top level must contain UNIQUE URLs.
+    - Remove duplicates (keep first occurrence, drop the rest).
+    - Never output the same URL twice.
+15. NEVER drop a field that exists in the SCHEMA. Every key must appear
+    in the output, even if its value is null or [].
+16. "summary", "skills" and "projects" must NEVER be empty.
+    Use only projects that appear in the INPUT RESUME JSON, with their exact names.
+
+### USER EXTRAS (optional)
+{{USER_EXTRAS}}
+If USER_EXTRAS is empty, strictly follow JD relevance. If not empty,
+honor the user's request to include specific extra content.
+
+### SCHEMA
+{
+  "name": "string",
+  "tailored_title": "string",
+  "email": "string or null",
+  "phone": "string or null",
+  "location": "string or null",
+  "website": "string or null",
+  "links": ["string"],
+  "summary": "string",
+  "skills": {
+    "<CategoryName>": ["string"]
+  },
+  "projects": [
+    {
+      "name": "string",
+      "tech": ["string"],
+      "links": ["string"],
+      "description": ["string"]
+    }
+  ],
+  "experience": [
+    {
+      "title": "string",
+      "company": "string",
+      "duration": "string",
+      "description": ["string"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "string",
+      "institution": "string",
+      "year": "string"
+    }
+  ],
+  "achievements": ["string"]
+}
+
+### EXAMPLE
+
+INPUT RESUME (shortened):
+{
+  "name": "Alex",
+  "email": "alex@example.com",
+  "phone": "+91 9876543210",
+  "location": "Mumbai, India",
+  "website": "linkedin.com/in/alex",
+  "links": [
+    "github.com/alex",
+    "leetcode.com/u/alex",
+    "github.com/alex"
+  ],
+  "skills": ["Python", "FastAPI", "Redis", "Kotlin", "Android"],
+  "projects": [
+    {
+      "name": "URL-Shorten",
+      "tech": ["Python", "Redis"],
+      "links": ["github.com/alex/url-shorten"],
+      "description": [
+        "Built 3-server Nginx architecture",
+        "Load-tested to 934 RPS"
+      ]
+    },
+    {
+      "name": "MobileApp",
+      "tech": ["Kotlin", "Compose"],
+      "links": [],
+      "description": ["Built offline-first Android app"]
+    }
+  ],
+  "experience": [],
+  "education": [],
+  "achievements": []
+}
+
+INPUT JD:
+{
+  "title": "Backend Engineer",
+  "required_skills": ["Python", "FastAPI", "Redis"]
+}
+
+OUTPUT:
+{
+  "name": "Alex",
+  "tailored_title": "Backend Engineer",
+  "email": "alex@example.com",
+  "phone": "+91 9876543210",
+  "location": "Mumbai, India",
+  "website": "linkedin.com/in/alex",
+  "links": [
+    "github.com/alex",
+    "leetcode.com/u/alex"
+  ],
+  "summary": "Backend engineer with Python and FastAPI experience. Built URL-Shorten, a distributed URL shortener load-tested to 934 RPS.",
+  "skills": {
+    "Backend": ["Python", "FastAPI", "Redis"],
+    "Mobile": ["Kotlin", "Android"]
+  },
+  "projects": [
+    {
+      "name": "URL-Shorten",
+      "tech": ["Python", "Redis"],
+      "links": ["github.com/alex/url-shorten"],
+      "description": [
+        "Built 3-server Nginx architecture with round-robin load balancing",
+        "Load-tested to 934 RPS with zero failures"
+      ]
+    }
+  ],
+  "experience": [],
+  "education": [],
+  "achievements": []
+}
+
+Notes on the example:
+- `location` copied unchanged from input ("Mumbai, India") — NOT null.
+- `website` copied unchanged ("linkedin.com/in/alex") — NOT null.
+- `links` deduplicated: input had 3 items with 1 duplicate → output has 2 unique.
+- `experience: []` preserved — no invented job entry.
+- All skills kept; only reordered (Backend first, Mobile second).
+- MobileApp project dropped (not relevant to backend JD).
+
+### INPUT RESUME JSON
+This is the candidate's full resume. It is your only source of truth.
+Do NOT invent anything that is not shown here.
+
+{{RESUME_JSON}}
+
+### INPUT JD JSON
+{{JD_JSON}}
+
+### RELEVANT RESUME CHUNKS
+These are chunks from the candidate's resume. Use them to write project
+bullet points. Do NOT invent bullets not shown here.
+
+{{RELEVANT_CHUNKS}}
+
+### OUTPUT (JSON only)

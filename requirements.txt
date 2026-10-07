@@ -22,4 +22,3 @@ weasyprint==62.3
 pymupdf==1.28.2
 # Utilities
 python-dotenv==1.0.1
-

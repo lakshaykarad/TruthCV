@@ -5,8 +5,6 @@ from typing import Any
 from dotenv import load_dotenv 
 
 load_dotenv() 
-print(torch.cuda.is_available())   # True or False?
-print(torch.cuda.device_count())   # How many GPUs?
 logger = logging.getLogger(__name__)
 
 OLLAMA_HOST        = os.getenv("OLLAMA_HOST", "http://localhost:11434")
@@ -28,13 +26,12 @@ def load_model(text_list: list[str]) -> list[list[float]]:
         resp = requests.post(
             f"{OLLAMA_HOST}/api/embed",
             json={"model": MODEL_NAME, "input": text_list},
-            timeout=30,
+            timeout=300,
         )
         resp.raise_for_status()
         return resp.json()["embeddings"]
     except Exception as e:
         raise RuntimeError(f"Could not load embedding model '{MODEL_NAME}' : {e}")
-
 
 device = get_device() 
 
@@ -63,7 +60,7 @@ def embed_chunks(chunks : list[dict[str : Any]]) -> list[dict[str : Any]]:
             vectors.extend(batch_vectors)
     except RuntimeError as e:
         logger.error("Encoding failed: %s", e)
-        raise
+        raise   
         
     for chunk, vector in zip(chunks, vectors):
         chunk["embedding"] = vector

@@ -40,7 +40,9 @@ def _clean_model_output(raw_model_response : str) -> str:
 
 SUSPICIOUS_EXPERIENCE = re.compile(
     r"(self[- ]directed|project portfolio|personal project|freelance|"
-    r"self[- ]employed|independent)",
+    r"self[- ]employed|independent|"
+    r"backend\s*&\s*android|frontend\s*&\s*android|full[- ]stack|"
+    r"^(backend|frontend|android|ios|mobile|web|software|devops)$)",
     re.IGNORECASE,
 )
 
@@ -66,7 +68,7 @@ def _coerce_resume_schema(data: dict[str, Any]) -> dict[str, Any]:
         "skills", "experience", "projects", 
         "education", "achievements", "other_details", "links"
     ]
-    scalar_fields = ["name", "email", "phone", "website"]
+    scalar_fields = ["name", "email", "phone", "location", "website"]
 
     for field in list_fields:
         val = data.get(field)
@@ -81,7 +83,6 @@ def _coerce_resume_schema(data: dict[str, Any]) -> dict[str, Any]:
             data[field] = str(val)
 
     return data
-
  
 def _coerce_jd_schema(data: dict[str, Any]) -> dict[str, Any]:
     list_fields = [
