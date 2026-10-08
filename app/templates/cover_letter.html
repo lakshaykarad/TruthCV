@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 1in; }
+  body {
+    font-family: 'Calibri', 'Carlito', 'Arial', sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #1a1a1a;
+  }
+  .date {
+    text-align: right;
+    font-size: 10pt;
+    color: #555;
+    margin-bottom: 24px;
+  }
+  .body { white-space: pre-wrap; }
+  .signature {
+    margin-top: 32px;
+    font-size: 11pt;
+  }
+</style>
+</head>
+<body>
+  <div class="date">{{ date }}</div>
+  <div class="body">{{ letter_text }}</div>
+  <div class="signature">
+    Sincerely,<br><br>
+    <strong>{{ candidate_name }}</strong>
+  </div>
+</body>
+</html>

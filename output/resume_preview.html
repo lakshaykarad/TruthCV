@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page {
+    size: A4;
+    margin: 0.75in 0.85in;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Calibri', 'Carlito', 'Arial', sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.35;
+    color: #1a1a1a;
+    margin: 0;
+  }
+
+  /* ── Header ───────────────────────────────── */
+  .header {
+    text-align: center;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #999;
+  }
+  .header .name {
+    font-size: 20pt;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin: 0 0 3px 0;
+    text-transform: uppercase;
+  }
+  .header .title {
+    font-size: 11.5pt;
+    color: #444;
+    margin: 0 0 6px 0;
+    font-weight: normal;
+  }
+  .header .contact {
+    font-size: 9.5pt;
+    color: #333;
+    margin: 0;
+  }
+  .header .contact a {
+    color: #1a4d8f;
+    text-decoration: none;
+  }
+  .header .contact .sep {
+    color: #888;
+    margin: 0 5px;
+  }
+
+  /* ── Sections ────────────────────────────── */
+  .section {
+    margin-bottom: 12px;
+    page-break-inside: auto;
+  }
+  .section-title {
+    font-size: 10.5pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: #1a1a1a;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 2px;
+    margin: 0 0 7px 0;
+  }
+
+  /* ── Summary ─────────────────────────────── */
+  .summary {
+    font-size: 10.5pt;
+    line-height: 1.4;
+    margin: 0 0 4px 0;
+  }
+
+  /* ── Skills ─────────────────────────────── */
+  .skill-group {
+    margin-bottom: 3px;
+    font-size: 10.5pt;
+    line-height: 1.4;
+  }
+  .skill-group .label {
+    font-weight: bold;
+    color: #1a1a1a;
+  }
+  .skill-group .values {
+    color: #333;
+  }
+
+  /* ── Projects / Experience entries ───────── */
+  .entry {
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+  }
+  .entry:last-child { margin-bottom: 0; }
+
+  .entry-head {
+    font-size: 10.5pt;
+    margin: 0 0 3px 0;
+    line-height: 1.35;
+  }
+  .entry-head .entry-name {
+    font-weight: bold;
+    color: #1a1a1a;
+  }
+  .entry-head .entry-tech {
+    color: #444;
+    font-weight: normal;
+  }
+  .entry-head .entry-tech::before {
+    content: " | ";
+    color: #999;
+  }
+  .entry-head .entry-duration {
+    color: #555;
+    float: right;
+    font-size: 9.5pt;
+  }
+
+  .entry-links {
+    font-size: 9pt;
+    color: #555;
+    margin: 2px 0 3px 0;
+  }
+  .entry-links a {
+    color: #1a4d8f;
+    text-decoration: none;
+    margin-right: 8px;
+  }
+
+  ul.bullets {
+    margin: 3px 0 0 0;
+    padding-left: 16px;
+    list-style-type: disc;
+  }
+  ul.bullets li {
+    margin: 0 0 2px 0;
+    line-height: 1.35;
+  }
+
+  /* ── Education ──────────────────────────── */
+  .edu-entry {
+    margin-bottom: 5px;
+  }
+  .edu-entry .edu-degree {
+    font-weight: bold;
+    color: #1a1a1a;
+  }
+  .edu-entry .edu-inst {
+    color: #333;
+  }
+  .edu-entry .edu-year {
+    color: #555;
+    float: right;
+    font-size: 9.5pt;
+  }
+
+  /* ── Achievements ───────────────────────── */
+  ul.achievements {
+    margin: 0;
+    padding-left: 16px;
+    list-style-type: disc;
+  }
+  ul.achievements li {
+    margin: 0 0 3px 0;
+    line-height: 1.35;
+  }
+
+  /* Prevent floats from overflowing */
+  .clear { clear: both; }
+</style>
+</head>
+<body>
+
+  <!-- ── HEADER ─────────────────────────────── -->
+  <div class="header">
+    <div class="name">Rahul Sharma</div>
+    
+      <div class="title">Android + Backend Developer</div>
+    
+    
+      <div class="contact">Noida <span class="sep">|</span> <a href="mailto:sharmarahul7@gmail.com">sharmarahul7@gmail.com</a> <span class="sep">|</span> 7851234567 <span class="sep">|</span> <a href="https://linkedin.com/in/Rahul-Sharma">linkedin.com/in/Rahul-Sharma</a> <span class="sep">|</span> <a href="https://github.com/RahulSharma">github.com/RahulSharma</a> <span class="sep">|</span> <a href="https://leetcode.com/u/SharmaRahul7">leetcode.com/u/SharmaRahul7</a> <span class="sep">|</span> <a href="https://RahulSharma.vercel.app">RahulSharma.vercel.app</a></div>
+    
+  </div>
+
+  <!-- ── SUMMARY ────────────────────────────── -->
+  
+  <div class="section">
+    <div class="section-title">Professional Summary</div>
+    <p class="summary">Android and backend developer experienced in building Kotlin/Jetpack Compose mobile apps and FastAPI services. Delivered RapidLink, a routing platform with JWT-secured FastAPI backend and Compose UI, and URL-Shorten, a high-throughput URL shortener using PostgreSQL, Redis, Docker and Nginx.</p>
+  </div>
+  
+
+  <!-- ── SKILLS ─────────────────────────────── -->
+  
+  <div class="section">
+    <div class="section-title">Technical Skills</div>
+    
+      
+      <div class="skill-group">
+        <span class="label">Backend:</span>
+        <span class="values">FastAPI, Python, PostgreSQL, REST API design, Docker, Redis, JWT / OAuth2, SQLAlchemy, Alembic, Uvicorn, Nginx, bcrypt, Locust</span>
+      </div>
+      
+    
+      
+      <div class="skill-group">
+        <span class="label">Android:</span>
+        <span class="values">Kotlin, Jetpack Compose, Retrofit, Kotlin Flow, Coroutines/Flow, MVVM, Clean Architecture, Hilt, Room, WorkManager, Foreground Services</span>
+      </div>
+      
+    
+  </div>
+  
+
+  <!-- ── PROJECTS ───────────────────────────── -->
+  
+  <div class="section">
+    <div class="section-title">Projects</div>
+    
+    <div class="entry">
+      <div class="entry-head">
+        <span class="entry-name">RapidLink</span>
+        
+          <span class="entry-tech">Kotlin, Jetpack Compose, FastAPI, PostgreSQL, OSRM, Docker, MapLibre</span>
+        
+      </div>
+      
+      <div class="entry-links">
+        
+          <a href="https://rahulsharma.vercel.app">Live</a>
+        
+          <a href="https://github.com/RahulSharma/RapidLink">GitHub</a>
+        
+      </div>
+      
+      
+      <ul class="bullets">
+        
+          <li>Built a FastAPI service on a self-hosted OSRM engine (Dockerized) that serves multiple route alternatives with ETAs</li>
+        
+          <li>Implemented JWT authentication (signup, login, token refresh) using the OAuth2 password flow</li>
+        
+          <li>Modeled users and profiles in PostgreSQL with SQLAlchemy and versioned schema changes via Alembic migrations</li>
+        
+          <li>Designed a traffic-simulation layer applying per-segment weights to the road network</li>
+        
+          <li>Integrated Nominatim geocoding, throttled to OSM's 1 req/sec fair-use limit</li>
+        
+          <li>Structured the Android client with MVVM, Clean Architecture, Hilt, and Kotlin Flow</li>
+        
+      </ul>
+      
+    </div>
+    
+    <div class="entry">
+      <div class="entry-head">
+        <span class="entry-name">URL-Shorten</span>
+        
+          <span class="entry-tech">Python, FastAPI, PostgreSQL, Redis, Nginx, Docker</span>
+        
+      </div>
+      
+      <div class="entry-links">
+        
+          <a href="https://rahulsharma.vercel.app">Live</a>
+        
+          <a href="https://github.com/RahulSharma/URL-Shorten">GitHub</a>
+        
+      </div>
+      
+      
+      <ul class="bullets">
+        
+          <li>Built a URL shortener with 3 FastAPI servers behind Nginx, containerized with Docker Compose</li>
+        
+          <li>Used Redis as a cache layer so repeated redirects never hit PostgreSQL</li>
+        
+          <li>Added IP-based rate limiting using Redis INCR — 5 requests per 60-second window per IP</li>
+        
+          <li>Load-tested with Locust achieving 934 RPS at 500 concurrent users with zero failures</li>
+        
+      </ul>
+      
+    </div>
+    
+    <div class="entry">
+      <div class="entry-head">
+        <span class="entry-name">ShopEase</span>
+        
+          <span class="entry-tech">Kotlin, Compose, Firebase, Retrofit, Room</span>
+        
+      </div>
+      
+      <div class="entry-links">
+        
+          <a href="https://rahulsharma.vercel.app">Live</a>
+        
+          <a href="https://github.com/RahulSharma/ShopEase">GitHub</a>
+        
+      </div>
+      
+      
+      <ul class="bullets">
+        
+          <li>Built a full e-commerce flow — product search, cart, favorites, and order placement — with Jetpack Compose and Material 3</li>
+        
+          <li>Structured the app in Clean Architecture layers (data, domain, presentation) using MVVM ViewModels</li>
+        
+          <li>Integrated Firebase Authentication for login and registration, and Retrofit for the product catalog API</li>
+        
+          <li>Added Room for offline caching</li>
+        
+      </ul>
+      
+    </div>
+    
+  </div>
+  
+
+  <!-- ── EXPERIENCE ─────────────────────────── -->
+  
+
+  <!-- ── EDUCATION ──────────────────────────── -->
+  
+  <div class="section">
+    <div class="section-title">Education</div>
+    
+    <div class="edu-entry">
+      <span class="edu-year">07/2023 – 09/2026</span>
+      <span class="edu-degree">Bachelor of Computer Applications (BCA)</span>
+      <span class="edu-inst"> — University of Noida</span>
+      <div class="clear"></div>
+    </div>
+    
+  </div>
+  
+
+  <!-- ── ACHIEVEMENTS ───────────────────────── -->
+  
+  <div class="section">
+    <div class="section-title">Achievements</div>
+    <ul class="achievements">
+      
+        <li>Ideathon Runner-Up (REJOICE 2026): Won 2nd place pitching RapidLink as a scalable, B2B logistics routing solution</li>
+      
+        <li>Open Source Licensing: Published the full RapidLink mobile engine and FastAPI backend under the Apache License 2.0</li>
+      
+    </ul>
+  </div>
+  
+
+</body>
+</html>
