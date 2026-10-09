@@ -5,195 +5,217 @@
 <style>
   @page {
     size: A4;
-    margin: 0.75in 0.85in;
+    margin: 10mm 10mm 10mm 10mm;
   }
 
   * { box-sizing: border-box; }
 
   body {
-    font-family: 'Calibri', 'Carlito', 'Arial', sans-serif;
-    font-size: 10.5pt;
-    line-height: 1.35;
+    font-family: 'Source Sans Pro', 'Segoe UI', 'Calibri', 'Arial', sans-serif;
+    font-size: 10pt;
+    line-height: 1.1;
     color: #1a1a1a;
     margin: 0;
   }
 
-  /* ── Header ───────────────────────────────── */
+  /* ══ HEADER (left-aligned) ═══════════════════ */
   .header {
-    text-align: center;
-    margin-bottom: 14px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #999;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1.5px solid #333;
   }
   .header .name {
-    font-size: 20pt;
+    font-size: 18pt;
     font-weight: bold;
-    letter-spacing: 1px;
-    margin: 0 0 3px 0;
-    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin: 0 0 1px 0;
+    color: #000;
+    line-height: 1.05;
   }
   .header .title {
-    font-size: 11.5pt;
+    font-size: 13.5pt;
     color: #444;
-    margin: 0 0 6px 0;
+    margin: 0 0 5px 0;
     font-weight: normal;
+    line-height: 1.05;
   }
   .header .contact {
-    font-size: 9.5pt;
+    font-size: 10pt;
     color: #333;
-    margin: 0;
+    line-height: 1.3;
   }
   .header .contact a {
     color: #1a4d8f;
-    text-decoration: none;
+    text-decoration: underline;
+    text-decoration-color: rgba(26, 77, 143, 0.4);
   }
   .header .contact .sep {
-    color: #888;
+    color: #999;
     margin: 0 5px;
   }
 
-  /* ── Sections ────────────────────────────── */
+  /* ══ SECTIONS ════════════════════════════════ */
   .section {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     page-break-inside: auto;
   }
+  .section:last-child { margin-bottom: 0; }
+
   .section-title {
-    font-size: 10.5pt;
+    font-size: 11.5pt;
     font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1.2px;
-    color: #1a1a1a;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 2px;
-    margin: 0 0 7px 0;
+    color: #000;
+    border-bottom: 0.8px solid #666;
+    padding-bottom: 1px;
+    margin: 0 0 5px 0;
+    text-transform: capitalize;
+    letter-spacing: 0.2px;
   }
 
-  /* ── Summary ─────────────────────────────── */
+  /* ══ SUMMARY ═════════════════════════════════ */
   .summary {
-    font-size: 10.5pt;
-    line-height: 1.4;
-    margin: 0 0 4px 0;
+    font-size: 10pt;
+    line-height: 1.25;
+    margin: 0;
+    text-align: justify;
   }
 
-  /* ── Skills ─────────────────────────────── */
+  /* ══ SKILLS ══════════════════════════════════ */
   .skill-group {
-    margin-bottom: 3px;
-    font-size: 10.5pt;
-    line-height: 1.4;
+    font-size: 10pt;
+    line-height: 1.2;
+    margin-bottom: 2px;
   }
   .skill-group .label {
     font-weight: bold;
-    color: #1a1a1a;
+    color: #000;
   }
   .skill-group .values {
-    color: #333;
+    color: #222;
   }
 
-  /* ── Projects / Experience entries ───────── */
+  /* ══ PROJECTS / EXPERIENCE ═══════════════════ */
   .entry {
-    margin-bottom: 10px;
+    margin-bottom: 7px;
     page-break-inside: avoid;
   }
   .entry:last-child { margin-bottom: 0; }
 
   .entry-head {
-    font-size: 10.5pt;
-    margin: 0 0 3px 0;
-    line-height: 1.35;
+    font-size: 10pt;
+    line-height: 1.15;
+    margin: 0 0 2px 0;
+    overflow: hidden;
+  }
+  .entry-head .entry-duration {
+    float: right;
+    color: #555;
+    font-size: 9.5pt;
+    font-style: italic;
   }
   .entry-head .entry-name {
     font-weight: bold;
-    color: #1a1a1a;
+    color: #000;
   }
   .entry-head .entry-tech {
-    color: #444;
+    color: #555;
     font-weight: normal;
   }
   .entry-head .entry-tech::before {
-    content: " | ";
-    color: #999;
-  }
-  .entry-head .entry-duration {
-    color: #555;
-    float: right;
-    font-size: 9.5pt;
+    content: " — ";
+    color: #888;
   }
 
   .entry-links {
-    font-size: 9pt;
-    color: #555;
-    margin: 2px 0 3px 0;
+    font-size: 9.5pt;
+    color: #444;
+    margin: 1px 0 3px 0;
+    line-height: 1.2;
   }
   .entry-links a {
     color: #1a4d8f;
-    text-decoration: none;
-    margin-right: 8px;
+    text-decoration: underline;
+    text-decoration-color: rgba(26, 77, 143, 0.4);
+  }
+  .entry-links .dot {
+    color: #999;
+    margin: 0 6px;
   }
 
   ul.bullets {
-    margin: 3px 0 0 0;
-    padding-left: 16px;
+    margin: 2px 0 0 0;
+    padding-left: 14px;
     list-style-type: disc;
   }
   ul.bullets li {
-    margin: 0 0 2px 0;
-    line-height: 1.35;
+    margin: 0 0 1px 0;
+    line-height: 1.2;
+    font-size: 10pt;
+    color: #1a1a1a;
   }
 
-  /* ── Education ──────────────────────────── */
+  /* ══ EDUCATION ═══════════════════════════════ */
   .edu-entry {
-    margin-bottom: 5px;
+    font-size: 10pt;
+    line-height: 1.15;
+    margin-bottom: 3px;
+    overflow: hidden;
+  }
+  .edu-entry:last-child { margin-bottom: 0; }
+  .edu-entry .edu-year {
+    float: right;
+    color: #555;
+    font-size: 9.5pt;
+    font-style: italic;
   }
   .edu-entry .edu-degree {
     font-weight: bold;
-    color: #1a1a1a;
+    color: #000;
   }
   .edu-entry .edu-inst {
     color: #333;
   }
-  .edu-entry .edu-year {
-    color: #555;
-    float: right;
-    font-size: 9.5pt;
+  .edu-entry .edu-inst::before {
+    content: " — ";
+    color: #888;
   }
 
-  /* ── Achievements ───────────────────────── */
+  /* ══ ACHIEVEMENTS ════════════════════════════ */
   ul.achievements {
     margin: 0;
-    padding-left: 16px;
+    padding-left: 14px;
     list-style-type: disc;
   }
   ul.achievements li {
-    margin: 0 0 3px 0;
-    line-height: 1.35;
+    margin: 0 0 2px 0;
+    line-height: 1.2;
+    font-size: 10pt;
+    color: #1a1a1a;
   }
-
-  /* Prevent floats from overflowing */
-  .clear { clear: both; }
 </style>
 </head>
 <body>
 
-  <!-- ── HEADER ─────────────────────────────── -->
+  <!-- ══ HEADER ══ -->
   <div class="header">
     <div class="name">Rahul Sharma</div>
     
       <div class="title">Android + Backend Developer</div>
     
     
-      <div class="contact">Noida <span class="sep">|</span> <a href="mailto:sharmarahul7@gmail.com">sharmarahul7@gmail.com</a> <span class="sep">|</span> 7851234567 <span class="sep">|</span> <a href="https://linkedin.com/in/Rahul-Sharma">linkedin.com/in/Rahul-Sharma</a> <span class="sep">|</span> <a href="https://github.com/RahulSharma">github.com/RahulSharma</a> <span class="sep">|</span> <a href="https://leetcode.com/u/SharmaRahul7">leetcode.com/u/SharmaRahul7</a> <span class="sep">|</span> <a href="https://RahulSharma.vercel.app">RahulSharma.vercel.app</a></div>
+      <div class="contact">Noida, India <span class="sep">|</span> <a href="mailto:sharmarahul7@gmail.com">sharmarahul7@gmail.com</a> <span class="sep">|</span> +91 78512 34567 <span class="sep">|</span> <a href="https://linkedin.com/in/Rahul-Sharma">linkedin.com/in/Rahul-Sharma</a> <span class="sep">|</span> <a href="https://github.com/RahulSharma">github.com/RahulSharma</a> <span class="sep">|</span> <a href="https://leetcode.com/u/SharmaRahul7">leetcode.com/u/SharmaRahul7</a> <span class="sep">|</span> <a href="https://RahulSharma.vercel.app">RahulSharma.vercel.app</a></div>
     
   </div>
 
-  <!-- ── SUMMARY ────────────────────────────── -->
+  <!-- ══ SUMMARY ══ -->
   
   <div class="section">
     <div class="section-title">Professional Summary</div>
-    <p class="summary">Android and backend developer experienced in building Kotlin/Jetpack Compose mobile apps and FastAPI services. Delivered RapidLink, a routing platform with JWT-secured FastAPI backend and Compose UI, and URL-Shorten, a high-throughput URL shortener using PostgreSQL, Redis, Docker and Nginx.</p>
+    <p class="summary">Android and backend developer with hands-on experience building Kotlin/Jetpack Compose mobile apps and FastAPI services. Delivered RapidLink, a routing platform with a JWT-secured FastAPI backend and Compose UI, and URL-Shorten, a high-throughput URL shortener that sustains 934 RPS at peak load. Strong foundation in PostgreSQL, Redis, Docker, and clean architecture patterns for scalable, production-ready systems.</p>
   </div>
   
 
-  <!-- ── SKILLS ─────────────────────────────── -->
+  <!-- ══ SKILLS ══ -->
   
   <div class="section">
     <div class="section-title">Technical Skills</div>
@@ -201,37 +223,45 @@
       
       <div class="skill-group">
         <span class="label">Backend:</span>
-        <span class="values">FastAPI, Python, PostgreSQL, REST API design, Docker, Redis, JWT / OAuth2, SQLAlchemy, Alembic, Uvicorn, Nginx, bcrypt, Locust</span>
+        <span class="values">FastAPI, Python, PostgreSQL, REST API design, Docker, Redis, JWT / OAuth2, SQLAlchemy, Alembic, Uvicorn, Nginx, bcrypt, Locust, Pydantic</span>
       </div>
       
     
       
       <div class="skill-group">
         <span class="label">Android:</span>
-        <span class="values">Kotlin, Jetpack Compose, Retrofit, Kotlin Flow, Coroutines/Flow, MVVM, Clean Architecture, Hilt, Room, WorkManager, Foreground Services</span>
+        <span class="values">Kotlin, Jetpack Compose, Retrofit, Kotlin Flow, Coroutines/Flow, MVVM, Clean Architecture, Hilt, Room, WorkManager, Foreground Services, Navigation Compose</span>
+      </div>
+      
+    
+      
+      <div class="skill-group">
+        <span class="label">Tools & DevOps:</span>
+        <span class="values">Git, GitHub Actions, Docker Compose, Postman, Linux, VS Code, Android Studio</span>
       </div>
       
     
   </div>
   
 
-  <!-- ── PROJECTS ───────────────────────────── -->
+  <!-- ══ PROJECTS ══ -->
   
   <div class="section">
     <div class="section-title">Projects</div>
     
     <div class="entry">
       <div class="entry-head">
+        
         <span class="entry-name">RapidLink</span>
-        
-          <span class="entry-tech">Kotlin, Jetpack Compose, FastAPI, PostgreSQL, OSRM, Docker, MapLibre</span>
-        
+        <span class="entry-tech">Kotlin, Jetpack Compose, FastAPI, PostgreSQL, OSRM, Docker, MapLibre</span>
       </div>
       
       <div class="entry-links">
         
+          
           <a href="https://rahulsharma.vercel.app">Live</a>
         
+          <span class="dot">|</span>
           <a href="https://github.com/RahulSharma/RapidLink">GitHub</a>
         
       </div>
@@ -239,17 +269,17 @@
       
       <ul class="bullets">
         
-          <li>Built a FastAPI service on a self-hosted OSRM engine (Dockerized) that serves multiple route alternatives with ETAs</li>
+          <li>Built a FastAPI service on a self-hosted OSRM engine (Dockerized) that serves multiple route alternatives with ETAs, replacing per-request paid mapping APIs</li>
         
-          <li>Implemented JWT authentication (signup, login, token refresh) using the OAuth2 password flow</li>
+          <li>Implemented JWT authentication (signup, login, token refresh) using the OAuth2 password flow with bcrypt hashing and per-token-type signing secrets</li>
         
           <li>Modeled users and profiles in PostgreSQL with SQLAlchemy and versioned schema changes via Alembic migrations</li>
         
-          <li>Designed a traffic-simulation layer applying per-segment weights to the road network</li>
+          <li>Designed a traffic-simulation layer applying per-segment weights to the road network, with a Leaflet.js dashboard to manage traffic state</li>
         
-          <li>Integrated Nominatim geocoding, throttled to OSM's 1 req/sec fair-use limit</li>
+          <li>Built a 3-stage GPS filter rejecting fixes with accuracy worse than 30m, suppressing drift under 3m, and discarding speeds over 40 m/s</li>
         
-          <li>Structured the Android client with MVVM, Clean Architecture, Hilt, and Kotlin Flow</li>
+          <li>Structured the Android client with MVVM, Clean Architecture, Hilt, and Kotlin Flow; stored full trip history in Room for offline review</li>
         
       </ul>
       
@@ -257,16 +287,17 @@
     
     <div class="entry">
       <div class="entry-head">
+        
         <span class="entry-name">URL-Shorten</span>
-        
-          <span class="entry-tech">Python, FastAPI, PostgreSQL, Redis, Nginx, Docker</span>
-        
+        <span class="entry-tech">Python, FastAPI, PostgreSQL, Redis, Nginx, Docker</span>
       </div>
       
       <div class="entry-links">
         
+          
           <a href="https://rahulsharma.vercel.app">Live</a>
         
+          <span class="dot">|</span>
           <a href="https://github.com/RahulSharma/URL-Shorten">GitHub</a>
         
       </div>
@@ -274,13 +305,15 @@
       
       <ul class="bullets">
         
-          <li>Built a URL shortener with 3 FastAPI servers behind Nginx, containerized with Docker Compose</li>
+          <li>Built a URL shortener with 3 FastAPI servers behind Nginx, containerized with Docker Compose and round-robin load balanced across all 3 instances</li>
         
-          <li>Used Redis as a cache layer so repeated redirects never hit PostgreSQL</li>
+          <li>Used Redis as a cache layer so repeated redirects never hit PostgreSQL, with a 10-minute TTL before refetch</li>
         
-          <li>Added IP-based rate limiting using Redis INCR — 5 requests per 60-second window per IP</li>
+          <li>Added IP-based rate limiting using Redis INCR — 5 requests per 60-second window per IP, atomic and race-condition free</li>
         
-          <li>Load-tested with Locust achieving 934 RPS at 500 concurrent users with zero failures</li>
+          <li>Generated 6-character short codes using Python's secrets module with automatic retry on PostgreSQL UniqueViolationError</li>
+        
+          <li>Load-tested with Locust from 100 to 5000 concurrent users; peak throughput 934 RPS at 500 users with zero failures</li>
         
       </ul>
       
@@ -288,16 +321,17 @@
     
     <div class="entry">
       <div class="entry-head">
+        
         <span class="entry-name">ShopEase</span>
-        
-          <span class="entry-tech">Kotlin, Compose, Firebase, Retrofit, Room</span>
-        
+        <span class="entry-tech">Kotlin, Compose, Firebase, Retrofit, Room</span>
       </div>
       
       <div class="entry-links">
         
+          
           <a href="https://rahulsharma.vercel.app">Live</a>
         
+          <span class="dot">|</span>
           <a href="https://github.com/RahulSharma/ShopEase">GitHub</a>
         
       </div>
@@ -307,11 +341,11 @@
         
           <li>Built a full e-commerce flow — product search, cart, favorites, and order placement — with Jetpack Compose and Material 3</li>
         
-          <li>Structured the app in Clean Architecture layers (data, domain, presentation) using MVVM ViewModels</li>
+          <li>Structured the app in Clean Architecture layers (data, domain, presentation) using MVVM ViewModels and Hilt for DI</li>
         
           <li>Integrated Firebase Authentication for login and registration, and Retrofit for the product catalog API</li>
         
-          <li>Added Room for offline caching</li>
+          <li>Added Room for offline caching, enabling users to browse previously loaded products without a network connection</li>
         
       </ul>
       
@@ -320,25 +354,24 @@
   </div>
   
 
-  <!-- ── EXPERIENCE ─────────────────────────── -->
+  <!-- ══ EXPERIENCE ══ -->
   
 
-  <!-- ── EDUCATION ──────────────────────────── -->
+  <!-- ══ EDUCATION ══ -->
   
   <div class="section">
     <div class="section-title">Education</div>
     
     <div class="edu-entry">
-      <span class="edu-year">07/2023 – 09/2026</span>
+      <span class="edu-year">2023 – 2026</span>
       <span class="edu-degree">Bachelor of Computer Applications (BCA)</span>
-      <span class="edu-inst"> — University of Noida</span>
-      <div class="clear"></div>
+      <span class="edu-inst">University of Noida</span>
     </div>
     
   </div>
   
 
-  <!-- ── ACHIEVEMENTS ───────────────────────── -->
+  <!-- ══ ACHIEVEMENTS ══ -->
   
   <div class="section">
     <div class="section-title">Achievements</div>
@@ -346,7 +379,7 @@
       
         <li>Ideathon Runner-Up (REJOICE 2026): Won 2nd place pitching RapidLink as a scalable, B2B logistics routing solution</li>
       
-        <li>Open Source Licensing: Published the full RapidLink mobile engine and FastAPI backend under the Apache License 2.0</li>
+        <li>Open Source Licensing: Published the full RapidLink mobile engine and Solved 350+ problems on LeetCode, strengthening DSA fundamentals</li>
       
     </ul>
   </div>

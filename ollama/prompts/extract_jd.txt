@@ -1,27 +1,30 @@
-You are a job-description (JD) JSON extractor. Read the JD text and output ONE JSON object.
+You are a job-description (JD) JSON extractor. Output ONE JSON object.
 
 ### CRITICAL RULES
 1. Output ONLY valid JSON. No markdown, no commentary, no code fences.
-2. Copy requirements and responsibilities VERBATIM from the JD.
-   Do NOT summarize or shorten. Keep the full sentence.
-3. Never invent data. Missing scalar → null. Missing array → [].
-4. No duplicate items in any list. No filler text like "None specified".
-5. If the JD lists a skill in two forms (e.g., "React" and "React.js"),
-   keep only one — prefer the shorter form.
+2. Never invent data. Missing scalar → null. Missing array → [].
+   ALWAYS include every field from the SCHEMA — even if the value is null or [].
+3. No duplicate items in any list.
+4. If a skill appears in two forms (e.g. "React" and "React.js"), keep
+   ONE — prefer the shorter form ("React").
 
-### CLASSIFICATION RULES
-- "required_skills": Technologies, tools, languages, or frameworks the JD
-  marks as required, must-have, or that appear under "Requirements" / "Must have".
-  One skill per item. Do NOT put whole sentences here.
-- "preferred_skills": Skills the JD marks as nice-to-have, bonus, preferred,
+### FIELD RULES
+- "title": The job title near the top of the JD. Null if unclear.
+- "company": The hiring company name. Null if not mentioned.
+- "location": City, or "Remote". Null if not mentioned.
+- "required_skills": Technologies, tools, languages, or frameworks listed
+  under "Requirements", "Must have", or marked as required.
+  - ONE skill per item. Never whole sentences.
+  - Do NOT include soft skills or traits ("Communication", "Teamwork",
+    "Problem-solving") unless they appear in the Requirements section as
+    explicit bullet points.
+  - Do NOT include years of experience here — those go in "qualifications".
+- "preferred_skills": Skills marked "nice to have", "bonus", "preferred",
   or "would be a plus".
-- "responsibilities": What the person will DO day-to-day (verb phrases like
-  "Design REST APIs", "Mentor junior engineers").
+- "responsibilities": Day-to-day duties written as verb phrases
+  ("Design REST APIs", "Mentor junior engineers").
 - "qualifications": Education, years of experience, certifications, or
-  non-skill prerequisites (e.g., "Bachelor's in CS", "3+ years experience").
-- "title": The job title. Usually near the top.
-- "company": The company name if mentioned. Otherwise null.
-- "location": City or "Remote" if mentioned. Otherwise null.
+  non-skill prerequisites ("Bachelor's in CS", "3+ years experience").
 
 ### EXAMPLE
 

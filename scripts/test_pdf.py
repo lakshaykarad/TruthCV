@@ -20,8 +20,8 @@ FAKE_TAILORED = {
     "name": "Rahul Sharma",
     "tailored_title": "Android + Backend Developer",
     "email": "sharmarahul7@gmail.com",
-    "phone": "7851234567",
-    "location": "Noida",
+    "phone": "+91 78512 34567",
+    "location": "Noida, India",
     "website": "linkedin.com/in/Rahul-Sharma",
     "links": [
         "github.com/RahulSharma",
@@ -29,49 +29,65 @@ FAKE_TAILORED = {
         "RahulSharma.vercel.app",
     ],
     "summary": (
-        "Android and backend developer experienced in building Kotlin/Jetpack "
-        "Compose mobile apps and FastAPI services. Delivered RapidLink, a routing "
-        "platform with JWT-secured FastAPI backend and Compose UI, and URL-Shorten, "
-        "a high-throughput URL shortener using PostgreSQL, Redis, Docker and Nginx."
+        "Android and backend developer with hands-on experience building "
+        "Kotlin/Jetpack Compose mobile apps and FastAPI services. Delivered "
+        "RapidLink, a routing platform with a JWT-secured FastAPI backend and "
+        "Compose UI, and URL-Shorten, a high-throughput URL shortener that "
+        "sustains 934 RPS at peak load. Strong foundation in PostgreSQL, Redis, "
+        "Docker, and clean architecture patterns for scalable, production-ready "
+        "systems."
     ),
     "skills": {
         "Backend": [
             "FastAPI", "Python", "PostgreSQL", "REST API design", "Docker",
             "Redis", "JWT / OAuth2", "SQLAlchemy", "Alembic", "Uvicorn",
-            "Nginx", "bcrypt", "Locust",
+            "Nginx", "bcrypt", "Locust", "Pydantic",
         ],
         "Android": [
             "Kotlin", "Jetpack Compose", "Retrofit", "Kotlin Flow",
             "Coroutines/Flow", "MVVM", "Clean Architecture", "Hilt",
-            "Room", "WorkManager", "Foreground Services",
+            "Room", "WorkManager", "Foreground Services", "Navigation Compose",
+        ],
+        "Tools & DevOps": [
+            "Git", "GitHub Actions", "Docker Compose", "Postman", "Linux",
+            "VS Code", "Android Studio",
         ],
     },
     "projects": [
         {
             "name": "RapidLink",
-            "tech": ["Kotlin", "Jetpack Compose", "FastAPI", "PostgreSQL",
-                     "OSRM", "Docker", "MapLibre"],
+            "duration": "Jan 2026 – Present",
+            "tech": [
+                "Kotlin", "Jetpack Compose", "FastAPI", "PostgreSQL",
+                "OSRM", "Docker", "MapLibre",
+            ],
             "links": [
                 "rahulsharma.vercel.app",
                 "github.com/RahulSharma/RapidLink",
             ],
             "description": [
-                "Built a FastAPI service on a self-hosted OSRM engine (Dockerized) "
-                "that serves multiple route alternatives with ETAs",
+                "Built a FastAPI service on a self-hosted OSRM engine "
+                "(Dockerized) that serves multiple route alternatives with ETAs, "
+                "replacing per-request paid mapping APIs",
                 "Implemented JWT authentication (signup, login, token refresh) "
-                "using the OAuth2 password flow",
+                "using the OAuth2 password flow with bcrypt hashing and "
+                "per-token-type signing secrets",
                 "Modeled users and profiles in PostgreSQL with SQLAlchemy and "
                 "versioned schema changes via Alembic migrations",
                 "Designed a traffic-simulation layer applying per-segment weights "
-                "to the road network",
-                "Integrated Nominatim geocoding, throttled to OSM's 1 req/sec "
-                "fair-use limit",
+                "to the road network, with a Leaflet.js dashboard to manage "
+                "traffic state",
+                "Built a 3-stage GPS filter rejecting fixes with accuracy worse "
+                "than 30m, suppressing drift under 3m, and discarding speeds "
+                "over 40 m/s",
                 "Structured the Android client with MVVM, Clean Architecture, "
-                "Hilt, and Kotlin Flow",
+                "Hilt, and Kotlin Flow; stored full trip history in Room for "
+                "offline review",
             ],
         },
         {
             "name": "URL-Shorten",
+            "duration": "Aug 2025 – Nov 2025",
             "tech": ["Python", "FastAPI", "PostgreSQL", "Redis", "Nginx", "Docker"],
             "links": [
                 "rahulsharma.vercel.app",
@@ -79,50 +95,52 @@ FAKE_TAILORED = {
             ],
             "description": [
                 "Built a URL shortener with 3 FastAPI servers behind Nginx, "
-                "containerized with Docker Compose",
+                "containerized with Docker Compose and round-robin load "
+                "balanced across all 3 instances",
                 "Used Redis as a cache layer so repeated redirects never hit "
-                "PostgreSQL",
-                "Added IP-based rate limiting using Redis INCR — 5 requests "
-                "per 60-second window per IP",
-                "Load-tested with Locust achieving 934 RPS at 500 concurrent "
-                "users with zero failures",
+                "PostgreSQL, with a 10-minute TTL before refetch",
+                "Added IP-based rate limiting using Redis INCR — 5 requests per "
+                "60-second window per IP, atomic and race-condition free",
+                "Generated 6-character short codes using Python's secrets module "
+                "with automatic retry on PostgreSQL UniqueViolationError",
+                "Load-tested with Locust from 100 to 5000 concurrent users; peak "
+                "throughput 934 RPS at 500 users with zero failures",
             ],
         },
         {
             "name": "ShopEase",
+            "duration": "Mar 2025 – Jul 2025",
             "tech": ["Kotlin", "Compose", "Firebase", "Retrofit", "Room"],
             "links": [
                 "rahulsharma.vercel.app",
                 "github.com/RahulSharma/ShopEase",
             ],
             "description": [
-                "Built a full e-commerce flow — product search, cart, "
-                "favorites, and order placement — with Jetpack Compose and "
-                "Material 3",
+                "Built a full e-commerce flow — product search, cart, favorites, "
+                "and order placement — with Jetpack Compose and Material 3",
                 "Structured the app in Clean Architecture layers (data, domain, "
-                "presentation) using MVVM ViewModels",
+                "presentation) using MVVM ViewModels and Hilt for DI",
                 "Integrated Firebase Authentication for login and registration, "
                 "and Retrofit for the product catalog API",
-                "Added Room for offline caching",
+                "Added Room for offline caching, enabling users to browse "
+                "previously loaded products without a network connection",
             ],
         },
     ],
-    "experience": [],
     "education": [
         {
             "degree": "Bachelor of Computer Applications (BCA)",
             "institution": "University of Noida",
-            "year": "07/2023 – 09/2026",
+            "year": "2023 – 2026",
         },
     ],
     "achievements": [
-        "Ideathon Runner-Up (REJOICE 2026): Won 2nd place pitching "
-        "RapidLink as a scalable, B2B logistics routing solution",
-        "Open Source Licensing: Published the full RapidLink mobile engine "
-        "and FastAPI backend under the Apache License 2.0",
+        "Ideathon Runner-Up (REJOICE 2026): Won 2nd place pitching RapidLink "
+        "as a scalable, B2B logistics routing solution",
+        "Open Source Licensing: Published the full RapidLink mobile engine and " 
+        "Solved 350+ problems on LeetCode, strengthening DSA fundamentals",
     ],
 }
-
 FAKE_LETTER = """Dear Hiring Manager,
 
 My name is Rahul Sharma, and I am writing to apply for the Android + Backend

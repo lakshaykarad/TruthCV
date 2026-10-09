@@ -16,7 +16,6 @@ EXTRACTION_RETRIES = int(os.getenv("EXTRACTION_RETRIES", "2"))
 PROMPT_DIR = Path(__file__).resolve().parents[2] / "ollama" / "prompts" 
 PLACEHOLDERS = ("{{TEXT}}", "{{RESUME_TEXT}}", "{{JD_TEXT}}")
 
-
 def load_prompt_template(prompt_name: str) -> str:
     
     """Load the Extraction prompt template once and cache it."""
@@ -81,10 +80,46 @@ def _coerce_resume_schema(data: dict[str, Any]) -> dict[str, Any]:
         val = data.get(field)
         if val is not None and not isinstance(val, str):
             data[field] = str(val)
+        
+    valid_url_re = re.compile(
+        r"(github\.com|gitlab\.com|vercel\.app|netlify\.app|"
+        r"github\.io|herokuapp\.com|onrender\.com|railway\.app|"
+        r"leetcode\.com|linkedin\.com|youtube\.com|"
+        r"\.dev/|\.io/|\.com/)",
+        re.IGNORECASE,
+    )
+    portfolio_url = (data.get("website") or "").strip().lower()
 
+    for proj in data.get("projects") or []:
+        if not isinstance(proj, dict):
+            continue
+        raw_links = proj.get("links") or []
+        cleaned: list[str] = []
+        seen: set[str] = set()
+        for link in raw_links:
+            if not isinstance(link, str):
+                continue
+            link = link.strip()
+            low = link.lower()
+            if not link:
+                continue
+            if portfolio_url and portfolio_url in low:
+                logger.debug("Dropping portfolio URL from project: %s", link)
+                continue
+            if not valid_url_re.search(link):
+                logger.debug("Dropping invalid project link: %s", link)
+                continue
+            if low in seen:
+                continue
+            seen.add(low)
+            cleaned.append(link)
+        proj["links"] = cleaned
     return data
- 
+
 def _coerce_jd_schema(data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Normalize JD JSON: fill missing fields, strip whitespace, dedupe lists.
+    """
     list_fields = [
         "required_skills",
         "preferred_skills",
@@ -92,18 +127,38 @@ def _coerce_jd_schema(data: dict[str, Any]) -> dict[str, Any]:
         "qualifications",
     ]
     scalar_fields = ["title", "company", "location"]
-
+ 
     for field in list_fields:
         val = data.get(field)
         if val is None:
             data[field] = []
-        elif not isinstance(val, list):
-            data[field] = [val]
+            continue
+        if not isinstance(val, list):
+            val = [val]
 
+        cleaned: list[str] = []
+        seen: set[str] = set()
+        for item in val:
+            if not isinstance(item, str):
+                item = str(item)
+            item = item.strip()
+            if not item:
+                continue
+            key = item.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            cleaned.append(item)
+        data[field] = cleaned
+ 
     for field in scalar_fields:
         val = data.get(field)
-        if val is not None and not isinstance(val, str):
-            data[field] = str(val)
+        if val is None:
+            data[field] = None
+        elif not isinstance(val, str):
+            data[field] = str(val).strip()
+        else:
+            data[field] = val.strip() or None
 
     return data
 
@@ -132,23 +187,14 @@ def _call_ollama(prompt : str) -> str:
     
     return resp.json().get("response","")
 
-def extract_resume_json(resume_text: str) -> dict[str, Any]:
-    """Wrapper: extract resume JSON. Backwards-compatible with old callers."""
+def extract_resume_json(resume_text: str) -> dict[str, Any]: 
     return _extract(resume_text, prompt_name="resume")
 
-def extract_jd_json(jd_text: str) -> dict[str, Any]:
-    """Wrapper: extract job-description JSON."""
+def extract_jd_json(jd_text: str) -> dict[str, Any]: 
     return _extract(jd_text, prompt_name="jd")
 
-
 def _extract(text: str, prompt_name: str) -> dict[str, Any]:
-    """Send text (resume or JD) to the extraction and return a validated dict.
-
-    Raises:
-        ValueError - if the model never returns parseable JSON after retries.
-        RuntimeError - if Ollama itself is unreachable / errors out.
-    """
-
+    
     if not text or not text.strip():
         raise ValueError("Empty resume text; nothing to extract.")
      

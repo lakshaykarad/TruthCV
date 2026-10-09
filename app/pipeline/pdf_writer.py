@@ -117,7 +117,7 @@ def render_resume_pdf(
     html = template.render(**context)
     
     if output_path is None:
-        fname = f"resume{_safe_filename(context['name'])}.pdf"
+        fname = f"resume_{_safe_filename(context['name'])}.pdf"
         output_path = str(OUTPUT_DIR/fname)
     
     out = Path(output_path)
