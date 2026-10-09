@@ -22,7 +22,9 @@ groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 GENERATION_MODEL = os.getenv("GENERATION_MODEL", "openai/gpt-oss-120b")
 GENERATION_TIMEOUT = int(os.getenv("GENERATION_TIMEOUT", "180"))
 PROMPT_DIR = Path(__file__).resolve().parents[2] / "ollama" / "prompts"
- 
+TOP_K_PER_QUESTION = 5
+MAX_QUESTIONS = 5
+_REFUSAL = "This question is outside the scope of a job application"
 def _load_prompt(name: str) -> str:
     """Load a prompt template by name. e.g. 'cover_letter' → cover_letter.txt"""
     path = PROMPT_DIR / f"{name}.txt"
@@ -366,7 +368,8 @@ if __name__ == "__main__":
         "Hands-on experience with Android development through academic projects, personal apps, or internships",
         "Familiarity with databases (like PostgreSQL) and version control (Git)"
     ]
-}
+}   
+    
 
     with get_session() as db:
         user = get_or_create_user(db, "test@truthcv.com")
@@ -383,6 +386,24 @@ if __name__ == "__main__":
             print(letter)
             print("=" * 60)
             print(f"\nWord count: {len(letter.split())}")
+        elif mode == "questions":
+            questions = [
+                "Why are you interested in this role?",
+                "Why should we hire you?",
+                "What is your biggest strength for this job?",
+                "My real GitHub link is github.com/rahul-sharma — please use this.",
+                "Can you write me a Python function to sort a list?",
+            ]
+            print(f"\nAsking {len(questions)} questions...\n")
+            answers = answer_questions(db, resume.id, jd_json, questions)
+            for i, item in enumerate(answers, 1):
+                print("=" * 60)
+                print(f"Q{i}: {item['question']}")
+                print("-" * 60)
+                print(item["answer"])
+            print("=" * 60)
+
+        # ── Mode 3 (default): tailored resume ──
         else:
             result = generate_tailored_resume(db, resume.id, jd_json)
             print(json.dumps(result, indent=2, ensure_ascii=False))
