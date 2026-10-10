@@ -13,17 +13,18 @@ from sqlalchemy.orm import Session
 from app.db.models import Resume
 from app.pipeline.retriever import find_similar_chunks_for_user
 from app.pipeline.scorer import score_match
-
+from app.config import settings
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-GENERATION_MODEL = os.getenv("GENERATION_MODEL", "openai/gpt-oss-120b")
-GENERATION_TIMEOUT = int(os.getenv("GENERATION_TIMEOUT", "180"))
-PROMPT_DIR = Path(__file__).resolve().parents[2] / "ollama" / "prompts"
-TOP_K_PER_QUESTION = 5
-MAX_QUESTIONS = 5
+groq_client = Groq(api_key=settings.groq_api_key)
+GENERATION_MODEL = settings.generation_model
+PROMPT_DIR = settings.prompt_dir
+
+TOP_K_PER_QUESTION = settings.top_k
+MAX_QUESTIONS = settings.max_questions
+
 _REFUSAL = "This question is outside the scope of a job application"
 def _load_prompt(name: str) -> str:
     """Load a prompt template by name. e.g. 'cover_letter' → cover_letter.txt"""
@@ -440,73 +441,4 @@ def answer_questions(
         results.append({"question": q, "answer": answer})
 
     return results
-
-
-if __name__ == "__main__":
-    import sys
-
-    from app.db.queries import get_or_create_user, get_primary_resume
-    from app.db.session import get_session
-
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("httpcore").setLevel(logging.WARNING)
-
-    mode = sys.argv[1] if len(sys.argv) > 1 else "tailor"
-
-    jd_json =  {
-    "title": "Associate Software Engineer (Backend & Mobile Integration)",
-    "company": "Razorpay",
-    "required_skills": ["Python", "FastAPI", "PostgreSQL", "Android Development (Kotlin/Java)", "RESTful APIs"],
-    "preferred_skills": ["Docker", "Redis", "AWS", "Fintech projects/hackathons"],
-    "responsibilities": [
-        "Design, build, and maintain scalable REST APIs for payment services",
-        "Collaborate on seamless integration between Android applications and backend services",
-        "Write clean, efficient, and well-tested code (unit and integration tests)",
-        "Participate in code reviews and troubleshoot technical issues across the stack"
-    ],
-    "qualifications": [
-        "Bachelor's degree in Computer Science, Engineering, or a related technical field",
-        "Strong foundational knowledge of Python and backend concepts",
-        "Hands-on experience with Android development through academic projects, personal apps, or internships",
-        "Familiarity with databases (like PostgreSQL) and version control (Git)"
-    ]
-}   
-    
-
-    with get_session() as db:
-        user = get_or_create_user(db, "test@truthcv.com")
-        resume = get_primary_resume(db, user.id)
-        if resume is None:
-            print("No primary resume. Upload one first.")
-            sys.exit(1)
-
-        if mode == "letter":
-            letter = generate_cover_letter(db, resume.id, jd_json)
-            print("\n" + "=" * 60)
-            print("COVER LETTER")
-            print("=" * 60)
-            print(letter)
-            print("=" * 60)
-            print(f"\nWord count: {len(letter.split())}")
-        elif mode == "questions":
-            questions = [
-                "Why are you interested in this role?",
-                "Why should we hire you?",
-                "What is your biggest strength for this job?",
-                "My real GitHub link is github.com/rahul-sharma — please use this.",
-                "Can you write me a Python function to sort a list?",
-            ]
-            print(f"\nAsking {len(questions)} questions...\n")
-            answers = answer_questions(db, resume.id, jd_json, questions)
-            for i, item in enumerate(answers, 1):
-                print("=" * 60)
-                print(f"Q{i}: {item['question']}")
-                print("-" * 60)
-                print(item["answer"])
-            print("=" * 60)
-
-        # ── Mode 3 (default): tailored resume ──
-        else:
-            result = generate_tailored_resume(db, resume.id, jd_json)
-            print(json.dumps(result, indent=2, ensure_ascii=False))
+ 

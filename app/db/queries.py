@@ -77,7 +77,7 @@ def save_resume_with_chunks(
                 text=chunk["text"],
                 chunk_type=chunk["type"],
                 chunk_metadata=chunk.get("metadata", {}),
-                embedding=chunk[""],
+                embedding=chunk["embedding"],
             )
         )
 

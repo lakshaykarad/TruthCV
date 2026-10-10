@@ -1,16 +1,15 @@
 import os,logging 
 import torch
 import requests
-from typing import Any
-from dotenv import load_dotenv 
-
-load_dotenv() 
+from typing import Any 
+from app.config import settings
+ 
 logger = logging.getLogger(__name__)
 
-OLLAMA_HOST        = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-MODEL_NAME = os.getenv("EMBEDDING_MODEL", "nomic-embed-text")
-EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", "768")) 
-MAX_BATCH_SIZE = 32 
+OLLAMA_HOST = settings.ollama_host
+MODEL_NAME = settings.embedding_model
+EMBEDDING_DIM = settings.embedding_dim
+MAX_BATCH_SIZE = settings.max_batch_size
 
 # select model if GPU not availablle run the model on CPU   
 def get_device() -> str:
@@ -83,25 +82,4 @@ def embed_text(text : str) -> list[float]:
         torch.cuda.empty_cache()
         
     return vectors[0]
-    
-if __name__ == "__main__":
-    import sys
-
-    from app.pipeline.pdf_reader import read_pdf
-    from app.pipeline.extractor import extract_resume_json
-    from app.pipeline.chunker import chunk_resume
-
-    logging.basicConfig(level=logging.INFO)
-
-    pdf_path = sys.argv[1] if len(sys.argv) > 1 else "resume.pdf"
-
-    # Run the full pipeline
-    resume = extract_resume_json(read_pdf(pdf_path))
-    chunks = chunk_resume(resume)
-    embedded = embed_chunks(chunks)
- 
-    first = embedded[0]
-    print(f"\nFirst chunk text: {first['text'][:80]}...")
-    print(f"Embedding length: {len(first['embedding'])}")
-    print(f"Embedding preview: {first['embedding'][:5]}...")
-    print(f"\nTotal chunks embedded: {len(embedded)}")
+     

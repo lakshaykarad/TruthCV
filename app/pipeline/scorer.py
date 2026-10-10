@@ -5,14 +5,15 @@ import logging
 
 from sqlalchemy.orm import Session
 from app.pipeline.retriever  import find_similar_chunks
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-STRONG_THRESHOLD = 0.60   
-PARTIAL_THRESHOLD = 0.50
-WEAK_THRESHOLD = 0.40    
-SHOULD_APPLY_THRESHOLD = 60
+WEAK_THRESHOLD = settings.weak_threshold
+PARTIAL_THRESHOLD = settings.partial_threshold
+STRONG_THRESHOLD = settings.strong_threshold
 EVIDENCE_TOP_K = 3
+SHOULD_APPLY_THRESHOLD = settings.should_apply_threshold
 
 
 def classify_tier(score : float) -> str:
@@ -155,30 +156,3 @@ def score_match(
         ),
     } 
  
-if __name__ == "__main__":
-    import json
-    import logging as _log
-
-    from app.db.queries import get_or_create_user, get_primary_resume
-    from app.db.session import get_session
-
-    _log.basicConfig(level=_log.INFO)
-
-    # A sample JD to test against (same as scripts/test_jd.py)
-    sample_jd = {
-        "title": "Backend Engineer",
-        "company": "Razorpay",
-        "required_skills": ["Python", "FastAPI", "PostgreSQL", "Redis", "Docker"],
-        "preferred_skills": ["AWS", "Kubernetes", "fintech"],
-    }
-
-    with get_session() as db:
-        user = get_or_create_user(db, "test@truthcv.com")
-        resume = get_primary_resume(db, user.id)
-        if resume is None:
-            print("No primary resume found. Upload one first.")
-            raise SystemExit(1)
-
-        report = score_match(db, resume.id, sample_jd)
-
-    print(json.dumps(report, indent=2, ensure_ascii=False))

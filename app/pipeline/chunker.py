@@ -289,19 +289,4 @@ def chunk_jd(jd: dict[str, Any]) -> list[dict[str, Any]]:
 
     logger.info("JD → %d chunks", len(chunks))
     return chunks
-
-
-# ---------- smoke test ----------
-if __name__ == "__main__":
-    import json, sys
-    from app.pipeline.pdf_reader import read_pdf
-    from app.pipeline.extractor import extract_resume_json
-
-    logging.basicConfig(level=logging.INFO)
-    pdf = sys.argv[1] if len(sys.argv) > 1 else "resume.pdf"
-
-    resume = extract_resume_json(read_pdf(pdf))
-    chunks = chunk_resume(resume)
-
-    print(json.dumps(chunks, indent=2, ensure_ascii=False))
-    print(f"\nTotal: {len(chunks)} chunks")
+ 

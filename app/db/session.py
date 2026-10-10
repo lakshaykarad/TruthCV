@@ -7,10 +7,11 @@ from contextlib import contextmanager
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+from app.config import settings
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = settings.database_url
 
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL not found")

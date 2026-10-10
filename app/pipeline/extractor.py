@@ -3,17 +3,16 @@ import os, json,re, requests, logging
 from dotenv import load_dotenv
 from pathlib import Path
 from typing import Any
-
+from app.config import settings
 load_dotenv()
 
 logger = logging.getLogger(__name__)
  
-OLLAMA_HOST        = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-EXTRACTION_MODEL = os.getenv("EXTRACTION_MODEL", "qwen2.5:3b")
-EXTRACTION_TIMEOUT = int(os.getenv("EXTRACTION_TIMEOUT", "120"))
-EXTRACTION_RETRIES = int(os.getenv("EXTRACTION_RETRIES", "2"))
-
-PROMPT_DIR = Path(__file__).resolve().parents[2] / "ollama" / "prompts" 
+OLLAMA_HOST = settings.ollama_host
+EXTRACTION_MODEL = settings.extraction_model
+EXTRACTION_TIMEOUT = settings.extraction_timeout
+EXTRACTION_RETRIES = settings.extraction_retries
+PROMPT_DIR = settings.prompt_dir
 PLACEHOLDERS = ("{{TEXT}}", "{{RESUME_TEXT}}", "{{JD_TEXT}}")
 
 def load_prompt_template(prompt_name: str) -> str:
@@ -243,17 +242,3 @@ def _extract(text: str, prompt_name: str) -> dict[str, Any]:
         f"Last error: {last_error}"
     )
     
-
-if __name__ == "__main__":
-    import sys
-    from app.pipeline.pdf_reader import read_pdf
-
-    if len(sys.argv) < 2: 
-        sys.exit(1)
-
-    logging.basicConfig(level=logging.INFO)
-
-    text = read_pdf(sys.argv[1]) 
-
-    result = extract_resume_json(text)
-    print(json.dumps(result, indent=2, ensure_ascii=False))

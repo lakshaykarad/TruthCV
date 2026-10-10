@@ -7,12 +7,12 @@ from pathlib import Path
 from typing import Any
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
-
+from app.config import settings
 logger = logging.getLogger(__name__)
 
-TEMPLATE_DIR = Path(__file__).resolve().parents[1] / "templates"
-OUTPUT_DIR = Path("output") # new folder name as output
-OUTPUT_DIR.mkdir(exist_ok=True)
+OUTPUT_DIR = settings.output_dir
+TEMPLATE_DIR = settings.template_dir
+
 
 # Jinja2 environment
 _env = Environment(

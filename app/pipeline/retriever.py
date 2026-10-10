@@ -8,11 +8,13 @@ from sqlalchemy.orm import Session
 from app.db.models import Chunk
 from app.db.queries import get_primary_resume
 from app.pipeline.embedder import embed_text
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_TOP_K = 5 # I JUST WANT ONLY TOP 5 K CHUNKS THAT MATCH WITH OUR REQUIRMENTS
-MIN_SIMILARITY = 0.4 
+DEFAULT_TOP_K = settings.top_k
+MIN_SIMILARITY = settings.similarity_threshold
+
 
 # Converts one Chunk Python dict
 def _chunk_to_dict(chunk : Chunk, score : float) ->dict[str,Any]:
@@ -109,25 +111,4 @@ def find_chunks_for_skills(
     merged = sorted(combined.values(), key=lambda c: c["score"], reverse=True)
     logger.info("Skills → %d unique chunks", len(merged))
     return merged
- 
-if __name__ == "__main__":
-    import sys
-
-    from app.db.session import get_session
-    from app.db.queries import get_or_create_user
-
-    logging.basicConfig(level=logging.INFO)
-
-    query = sys.argv[1] if len(sys.argv) > 1 else "FastAPI Docker"
-    email = sys.argv[2] if len(sys.argv) > 2 else "test@truthcv.com"
-
-    with get_session() as db:
-        user = get_or_create_user(db, email)
-        results = find_similar_chunks_for_user(db, user.id, query)
-
-    print(f"\nQuery: {query!r}")
-    print(f"Found {len(results)} matching chunks:\n")
-    for i, chunk in enumerate(results, 1):
-        print(f"[{i}] score={chunk['score']:.3f}  type={chunk['type']}")
-        print(f"    {chunk['text'][:100]}")
-        print()
+  

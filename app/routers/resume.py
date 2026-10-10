@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/resume", tags=["resume"])
 
-
 MAX_FILE_SIZE = 10*2024*2024 # 10 MB max size 
 DEFAULT_USER_EMAIL = "test@truthcv.com" 
 
@@ -33,7 +32,6 @@ async def upload(
     file : UploadFile = File(...),
     email : str = Query(DEFAULT_USER_EMAIL)
 ) -> dict:
-    
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
     
