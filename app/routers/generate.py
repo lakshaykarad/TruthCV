@@ -192,3 +192,30 @@ def generate_answers(
         "answers": answers,
         "count": len(answers),
     }
+
+class ScoreRequest(BaseModel):
+    jd_text: str = Field(..., min_length=20, max_length=MAX_JD_CHARS)
+
+
+@router.post("/score")
+def score_jd(
+    body: ScoreRequest,
+    email: str = Query(default=DEFAULT_USER_EMAIL),
+    db: Session = Depends(get_db),
+) -> dict: 
+    resume = _load_primary_resume(db, email)
+    jd_json = _parse_jd(body.jd_text)
+
+    from app.pipeline.scorer import score_match
+    report = score_match(db, resume.id, jd_json)
+
+    return {
+        "status": "ok",
+        "match_percent": report["required_skills_match_percent"],
+        "should_apply": report["should_apply"],
+        "matched": [s["skill"] for s in report["required"]["matched"]],
+        "partial": [s["skill"] for s in report["required"]["partial"]],
+        "missing": [s["skill"] for s in report["required"]["missing"]],
+        "preferred_matched": [s["skill"] for s in report["preferred"]["matched"]],
+        "counts": report["counts"],
+    }
