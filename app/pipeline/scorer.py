@@ -6,7 +6,7 @@ import logging
 from sqlalchemy.orm import Session
 from app.pipeline.retriever  import find_similar_chunks
 from app.config import settings
-
+import re
 logger = logging.getLogger(__name__)
 
 WEAK_THRESHOLD = settings.weak_threshold
@@ -25,11 +25,30 @@ def classify_tier(score : float) -> str:
         return "weak"
     return "missing"
 
+_STOPWORDS = {"and", "or", "the", "of", "for", "with", "using",
+              "in", "to", "a", "an", "on", "at", "by", "development"}
+
 def skill_appears_in_text(skill: str, text: str) -> bool:
-     
     if not skill or not text:
         return False
-    return skill.lower() in text.lower()
+
+    text_lower = text.lower()
+    skill_lower = skill.lower().strip()
+ 
+    if skill_lower in text_lower:
+        return True
+
+    parts = re.split(r"[()/,]| and | or ", skill_lower)
+    parts = [p.strip() for p in parts if len(p.strip()) >= 3]
+ 
+    for part in parts:
+        words = [w for w in re.findall(r"[a-z0-9+#.]+", part)
+                 if len(w) >= 3 and w not in _STOPWORDS]
+        if any(w in text_lower for w in words):
+            return True
+
+    return False
+
 
 def score_one_skill(
     db : Session,
