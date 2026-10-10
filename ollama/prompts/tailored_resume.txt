@@ -189,4 +189,17 @@ bullet points. Do NOT invent bullets not shown here.
 
 {{RELEVANT_CHUNKS}}
 
+### USER INSTRUCTIONS (optional)
+The user has provided extra details along with the JD. These may include:
+- corrected links (e.g. "use github.com/real-me")
+- role clarifications
+- things to emphasize or downplay
+- any other notes about the application
+
+Apply them EXACTLY as stated. Use corrected values instead of what is
+in the data. Only apply what is explicitly stated — do not invent.
+If empty, ignore this section.
+
+{{USER_INSTRUCTIONS}}
+
 ### OUTPUT (JSON only)

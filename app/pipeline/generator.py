@@ -223,11 +223,23 @@ def _parse_and_validate(raw: str) -> dict[str, Any]:
     return data
 
 
+
+def _cap(text: str, limit: int, label: str) -> str: 
+    if not text:
+        return ""
+    text = text.strip()
+    if len(text) > limit:
+        logger.warning("%s too long (%d chars), truncating to %d", label, len(text), limit)
+        text = text[:limit]
+    return text
+
 def generate_tailored_resume(
     db: Session,
     resume_id: int,
     jd_json: dict[str, Any],
     user_extras: str = "",
+    user_instructions: str = "",
+
 ) -> dict[str, Any]:
     """Tailor a resume to a specific JD. Uses the RAG retriever to save tokens."""
 
@@ -248,17 +260,17 @@ def generate_tailored_resume(
             if p.get("name")
         ],
     }
-    # 3. Fetch only the relevant chunks via RAG
+
     relevant_chunks = _fetch_relevant_chunks_text(
         db, resume.user_id, jd_json, top_k=15,
     )
-
-    # 4. Cap user input
+ 
     if user_extras and len(user_extras) > MAX_USER_EXTRAS_CHARS:
         logger.warning("user_extras too long, truncating")
         user_extras = user_extras[:MAX_USER_EXTRAS_CHARS]
 
-    # 5. Build prompt: mini resume + chunks + JD
+    user_extras = _cap(user_extras, MAX_USER_EXTRAS_CHARS, "user_extras")
+ 
     template = _load_prompt("tailored_resume")
     prompt = (
         template
@@ -266,6 +278,7 @@ def generate_tailored_resume(
         .replace("{{RELEVANT_CHUNKS}}", relevant_chunks)
         .replace("{{JD_JSON}}", json.dumps(jd_json, indent=2, ensure_ascii=False))
         .replace("{{USER_EXTRAS}}", user_extras or "(none)")
+        .replace("{{USER_INSTRUCTIONS}}", (user_instructions or "").strip() or "(none)")
     )
 
     logger.info(
@@ -337,8 +350,98 @@ def generate_tailored_resume(
     data.pop("github", None)
     return data
  
- 
- 
+
+def _answer_one(
+    db : Session,
+    resume : Resume,
+    jd_json : dict[str, Any],
+    report : dict,
+    question : str,
+) -> str:
+    
+    chunks = find_similar_chunks_for_user(db,resume.user_id, question, top_k=TOP_K_PER_QUESTION)
+    
+    evidence = (
+        "\n".join(f"[{c['type']}] {c['text']}" for c in chunks)
+        if chunks else "(no relevant evidence found)"
+    )
+
+    original  = resume.json_data or {}
+    required = report["required"]
+    
+    matched = ", ".join(
+        s["skill"] for s in required.get("matched", []) + required.get("partial", [])
+    ) or "(none)"
+    
+    missing = ", ".join(s["skill"] for s in required.get("missing", [])) or "(none)"
+
+    template = _load_prompt("answer_questions")
+    
+    prompt = (
+        template
+        .replace("{{NAME}}", original.get("name") or "Candidate")
+        .replace("{{EMAIL}}", original.get("email") or "(not provided)")
+        .replace("{{LOCATION}}", original.get("location") or "(not provided)")
+        .replace("{{MATCHED_SKILLS}}", matched)
+        .replace("{{MISSING_SKILLS}}", missing)
+        .replace("{{JOB_TITLE}}", jd_json.get("title") or "the role")
+        .replace("{{COMPANY}}", jd_json.get("company") or "the company")
+        .replace("{{RESPONSIBILITIES}}",
+                 "\n".join(f"- {r}" for r in (jd_json.get("responsibilities") or []))
+                 or "(none)")
+        .replace("{{CHUNKS}}", evidence)
+        .replace("{{QUESTION}}", question)
+    )
+    
+    try:
+        answer = _call_groq(prompt, effort="medium").strip()
+    except Exception as e: 
+        logger.warning("Answer LLM call failed: %s", e)
+        answer = "Could not generate an answer right now."
+
+    return answer or _REFUSAL
+
+
+def answer_questions(
+    db : Session,
+    resume_id : int,
+    jd_json : dict[str, Any], 
+    questions : list[str]
+) -> list[dict[str,str]] :
+    
+    resume = db.get(Resume, resume_id)
+    if resume is None:
+        raise ValueError(f"Resume id={resume_id} not found")
+    
+    questions = [q.strip() for q in questions if q and q.strip()]
+    
+    if not questions:
+        raise ValueError("No questions provided.")
+    
+    if len(questions) > MAX_QUESTIONS:
+        raise ValueError(
+            f"Too many questions ({len(questions)}). Max {MAX_QUESTIONS} per request."
+        )
+    
+    report = score_match(db, resume_id, jd_json)
+    
+    logger.info(
+        "Answering %d question(s) for resume=%d role='%s'",
+        len(questions), resume_id, jd_json.get("title"),
+    )
+    
+    results: list[dict[str, str]] = []
+    for q in questions:
+        try: 
+            answer = _answer_one(db, resume,jd_json,report,q)    
+        except Exception as e:
+            logger.error("Q failed: %r-%s", q[:60],e)
+            answer = "Could not process this question."
+        results.append({"question": q, "answer": answer})
+
+    return results
+
+
 if __name__ == "__main__":
     import sys
 
