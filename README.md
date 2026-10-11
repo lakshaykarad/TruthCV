@@ -177,4 +177,8 @@ python -m scripts.test_pdf
 
 ## License
 
-Not yet specified. Add a `LICENSE` file before sharing the project publicly.
+This project is licensed under the **GNU General Public License v3.0**.
+
+You are free to use, modify, and distribute this software, provided that
+any derivative work is also released under the GPL v3.0. See the
+[LICENSE](LICENSE) file for the full text.
