@@ -1,6 +1,0 @@
-
-#	File	What it does	            Time
-1	app/templates/resume.html	Resume layout (Aakriti-style)	45 min
-2	app/templates/cover_letter.html	Letter layout	20 min
-3	app/pipeline/pdf_writer.py	HTML → PDF (WeasyPrint)	1.5 hrs
-4	app/pipeline/docx_writer.py	JSON → DOCX (python-docx)	2 hrs
