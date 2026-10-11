@@ -1,11 +1,18 @@
 .venv/
 __pycache__/
 *.pyc
+ 
 .env
+ 
+output/
 *.pdf
 !docs/*.pdf
-eval/data/*.json
-.DS_Store
+ 
 *.log
+.DS_Store
+
+scripts/
+eval/ 
+eval/data/*.json
 
 docs/project.md

@@ -1,205 +1,185 @@
-You are tailoring a resume. Output ONLY valid JSON matching the schema below.
+You rewrite parts of a resume for one specific job. Output ONLY ONE JSON
+object, no markdown.
 
-### RULES
-1. Change "tailored_title" to the JD's exact title.
-2. Write a 2-3 sentence summary focused on the JD.
-3. Reorder skills: JD-matched skills first, grouped by category.
-   DROP skill categories that have ZERO overlap with the JD's
-   required_skills and preferred_skills. For a backend JD, this means
-   dropping Mobile, Frontend, AI, and Design categories.
+═══════════════════════════════════════════════════════════════════
+INPUTS
+═══════════════════════════════════════════════════════════════════
+- RESUME: skills (flat list) + project_names + experience + achievements
+- CHUNKS: bullet-level facts from the resume (one per line)
+- JD: structured job description
+- USER INSTRUCTIONS / USER EXTRAS: corrections from the candidate
 
-   EXCEPTION: If USER_EXTRAS explicitly asks to include other skills,
-   keep those categories.
-4. Pick max 3 projects (most JD-relevant). Bullets:
-   - Big project (many bullets in original): up to 6 bullets.
-   - Medium: 4 bullets.
-   - Small: 2-3 bullets.
-   - Flatten sub-sections into one list.
-5. Experience: keep reverse-chronological. Max 4 bullets per role.
-   If the input resume has "experience": [], the output MUST have
-   "experience": []. Do NOT invent a placeholder entry.
-6. Education: unchanged.
-7. Achievements: top 4-5 most relevant.
-8. NEVER invent skills, metrics, companies, or achievements.
-9. If the JD is backend-only, do NOT include frontend/mobile/AI bullets
-   in project descriptions unless they directly relate to backend work.
-   Skills categories (in "skills") stay — just reorder them.
-10. NEVER state years of experience (e.g. "2+ years", "3 years") unless
-    the resume explicitly mentions a duration with dates that add up to
-    that number. If the resume doesn't show a work history, do NOT
-    include any duration claim.
-11. In the "summary", do NOT include numbers of years. Describe
-    experience by project names and skills, not by duration.
-12. COPY all contact fields (name, email, phone, location, website, links)
-    UNCHANGED from the INPUT RESUME JSON.
-    - If the input value is NOT null, the output value MUST NOT be null.
-    - If the input value IS null, use null in the output.
-    - Do NOT invent values that aren't in the input.
-13. For each project, COPY the "links" array UNCHANGED from the input.
-    - Deduplicate: if the input has duplicate URLs, keep only one of each.
-    - If the input project has no links, use [].
-14. The "links" array at the top level must contain UNIQUE URLs.
-    - Remove duplicates (keep first occurrence, drop the rest).
-    - Never output the same URL twice.
-15. NEVER drop a field that exists in the SCHEMA. Every key must appear
-    in the output, even if its value is null or [].
-16. "summary", "skills" and "projects" must NEVER be empty.
-    Use only projects that appear in the INPUT RESUME JSON, with their exact names.
+═══════════════════════════════════════════════════════════════════
+ABSOLUTE RULES
+═══════════════════════════════════════════════════════════════════
+- Never invent skills, projects, companies, dates, numbers, or achievements.
+- Never add a skill that isn't in RESUME.skills.
+- Never add a project that isn't in RESUME.project_names.
+- Every project's "name" must EXACTLY match a name in RESUME.project_names.
+- All 5 output keys must appear.
 
-### USER EXTRAS (optional)
-{{USER_EXTRAS}}
-If USER_EXTRAS is empty, strictly follow JD relevance. If not empty,
-honor the user's request to include specific extra content.
+═══════════════════════════════════════════════════════════════════
+1. summary
+═══════════════════════════════════════════════════════════════════
+2-3 sentences. Use the JD's language.
+Mention 1-2 project names from RESUME.project_names.
+Mention 3-5 top skills that overlap with the JD.
+Never mention years of experience. Never use clichés like "passionate",
+"dynamic", "results-driven".
 
-### SCHEMA
-{
-  "name": "string",
-  "tailored_title": "string",
-  "email": "string or null",
-  "phone": "string or null",
-  "location": "string or null",
-  "website": "string or null",
-  "links": ["string"],
-  "summary": "string",
-  "skills": {
-    "<CategoryName>": ["string"]
-  },
-  "projects": [
-    {
-      "name": "string",
-      "tech": ["string"],
-      "links": ["string"],
-      "description": ["string"]
+═══════════════════════════════════════════════════════════════════
+2. skills
+═══════════════════════════════════════════════════════════════════
+The output "skills" object MUST contain EVERY skill from RESUME.skills.
+NOTHING is allowed to be removed. You are only REORDERING and GROUPING.
+
+If the input has 40 skills, the output has 40 skills. If the input has
+20 skills, the output has 20 skills. Count them — they must match.
+
+Steps:
+  a. Take RESUME.skills (a flat list).
+  b. Group them into categories that fit the field.
+  c. Inside each category, put JD-matched skills at the start, then
+     the rest. Do NOT delete the rest.
+  d. Order categories so JD-matched categories come first. Do NOT
+     delete unmatched categories.
+
+FORBIDDEN: dropping a category, dropping a skill, merging two skills
+into one, or renaming a skill.
+
+Categories to choose from (pick any that fit):
+  "Languages", "Backend", "Frontend", "Mobile", "Database",
+  "DevOps & Tools", "Design", "Marketing", "Analytics",
+  "Writing & Content", "Leadership", "Fundamentals", "Other"
+
+Example — JD asks only for "Kotlin":
+  Input skills: ["Python", "Kotlin", "Jetpack Compose", "MVVM",
+                 "Retrofit", "Hilt", "PostgreSQL", "Docker"]
+  CORRECT output:
+    "skills": {
+      "Mobile": ["Kotlin", "Jetpack Compose", "MVVM", "Retrofit", "Hilt"],
+      "Languages": ["Python"],
+      "Backend": ["PostgreSQL"],
+      "DevOps & Tools": ["Docker"]
     }
+  Note: EVERY skill from the input is present. Kotlin is just first.
+
+═══════════════════════════════════════════════════════════════════
+3. projects
+═══════════════════════════════════════════════════════════════════
+Pick the top 3 most JD-relevant from RESUME.project_names.
+For each: name (exact), tech, description.
+Description bullets come ONLY from CHUNKS lines that belong to this project.
+Copy verbatim. Big project → up to 6 bullets, medium → 4, small → 2-3.
+Order bullets with JD-relevant first.
+
+═══════════════════════════════════════════════════════════════════
+4. experience
+═══════════════════════════════════════════════════════════════════
+If RESUME.experience is [] → output []. Otherwise reverse-chronological.
+Max 4 bullets per role. Never invent.
+
+═══════════════════════════════════════════════════════════════════
+5. achievements
+═══════════════════════════════════════════════════════════════════
+Top 4-5 from RESUME.achievements, copied verbatim.
+
+═══════════════════════════════════════════════════════════════════
+USER INSTRUCTIONS / USER EXTRAS
+═══════════════════════════════════════════════════════════════════
+Apply exactly as stated. If USER INSTRUCTIONS says "use this link for X"
+or "drop the Mobile category", do it. If empty, ignore.
+
+═══════════════════════════════════════════════════════════════════
+SCHEMA
+═══════════════════════════════════════════════════════════════════
+{
+  "summary": "string",
+  "skills": {"<Category>": ["string"]},
+  "projects": [
+    {"name": "string", "tech": ["string"], "description": ["string"]}
   ],
   "experience": [
-    {
-      "title": "string",
-      "company": "string",
-      "duration": "string",
-      "description": ["string"]
-    }
-  ],
-  "education": [
-    {
-      "degree": "string",
-      "institution": "string",
-      "year": "string"
-    }
+    {"title": "string", "company": "string", "duration": "string",
+     "description": ["string"]}
   ],
   "achievements": ["string"]
 }
 
-### EXAMPLE
+═══════════════════════════════════════════════════════════════════
+EXAMPLE
+═══════════════════════════════════════════════════════════════════
+USER INSTRUCTIONS: (none)
+USER EXTRAS: (none)
 
-INPUT RESUME (shortened):
-{
-  "name": "Alex",
-  "email": "alex@example.com",
-  "phone": "+91 9876543210",
-  "location": "Mumbai, India",
-  "website": "linkedin.com/in/alex",
-  "links": [
-    "github.com/alex",
-    "leetcode.com/u/alex",
-    "github.com/alex"
-  ],
-  "skills": ["Python", "FastAPI", "Redis", "Kotlin", "Android"],
-  "projects": [
-    {
-      "name": "URL-Shorten",
-      "tech": ["Python", "Redis"],
-      "links": ["github.com/alex/url-shorten"],
-      "description": [
-        "Built 3-server Nginx architecture",
-        "Load-tested to 934 RPS"
-      ]
-    },
-    {
-      "name": "MobileApp",
-      "tech": ["Kotlin", "Compose"],
-      "links": [],
-      "description": ["Built offline-first Android app"]
-    }
-  ],
-  "experience": [],
-  "education": [],
-  "achievements": []
-}
+RESUME:
+{"skills": ["Figma", "Adobe XD", "User Research", "Prototyping",
+            "HTML", "CSS", "Wireframing"],
+ "project_names": ["FintechApp Redesign", "Portfolio Site"],
+ "experience": [],
+ "achievements": ["Winner, Designathon 2024"]}
 
-INPUT JD:
-{
-  "title": "Backend Engineer",
-  "required_skills": ["Python", "FastAPI", "Redis"]
-}
+CHUNKS:
+[project_detail] FintechApp Redesign: Redesigned the onboarding flow, reducing drop-off by 32%.
+[project_detail] FintechApp Redesign: Built 40+ high-fidelity screens in Figma.
+[project_detail] FintechApp Redesign: Ran 12 user interviews to validate the new flow.
+[project_detail] Portfolio Site: Built a personal portfolio using HTML, CSS, and Figma prototypes.
+
+JD:
+{"title": "Product Designer",
+ "required_skills": ["Figma", "User Research", "Prototyping",
+                     "Wireframing", "HTML", "CSS"],
+ "preferred_skills": ["Design Systems"]}
 
 OUTPUT:
 {
-  "name": "Alex",
-  "tailored_title": "Backend Engineer",
-  "email": "alex@example.com",
-  "phone": "+91 9876543210",
-  "location": "Mumbai, India",
-  "website": "linkedin.com/in/alex",
-  "links": [
-    "github.com/alex",
-    "leetcode.com/u/alex"
-  ],
-  "summary": "Backend engineer with Python and FastAPI experience. Built URL-Shorten, a distributed URL shortener load-tested to 934 RPS.",
+  "summary": "Product designer with hands-on experience in Figma, user research, and prototyping. Redesigned the FintechApp onboarding flow, reducing drop-off by 32%, and built a personal portfolio site in HTML/CSS.",
   "skills": {
-    "Backend": ["Python", "FastAPI", "Redis"],
-    "Mobile": ["Kotlin", "Android"]
+    "Design": ["Figma", "Adobe XD", "Prototyping", "Wireframing"],
+    "Research": ["User Research"],
+    "Frontend": ["HTML", "CSS"]
   },
   "projects": [
     {
-      "name": "URL-Shorten",
-      "tech": ["Python", "Redis"],
-      "links": ["github.com/alex/url-shorten"],
+      "name": "FintechApp Redesign",
+      "tech": ["Figma"],
       "description": [
-        "Built 3-server Nginx architecture with round-robin load balancing",
-        "Load-tested to 934 RPS with zero failures"
+        "Redesigned the onboarding flow, reducing drop-off by 32%.",
+        "Built 40+ high-fidelity screens in Figma.",
+        "Ran 12 user interviews to validate the new flow."
+      ]
+    },
+    {
+      "name": "Portfolio Site",
+      "tech": ["HTML", "CSS", "Figma"],
+      "description": [
+        "Built a personal portfolio using HTML, CSS, and Figma prototypes."
       ]
     }
   ],
   "experience": [],
-  "education": [],
-  "achievements": []
+  "achievements": ["Winner, Designathon 2024"]
 }
 
-Notes on the example:
-- `location` copied unchanged from input ("Mumbai, India") — NOT null.
-- `website` copied unchanged ("linkedin.com/in/alex") — NOT null.
-- `links` deduplicated: input had 3 items with 1 duplicate → output has 2 unique.
-- `experience: []` preserved — no invented job entry.
-- All skills kept; only reordered (Backend first, Mobile second).
-- MobileApp project dropped (not relevant to backend JD).
-
-### INPUT RESUME JSON
-This is the candidate's full resume. It is your only source of truth.
-Do NOT invent anything that is not shown here.
-
-{{RESUME_JSON}}
-
-### INPUT JD JSON
-{{JD_JSON}}
-
-### RELEVANT RESUME CHUNKS
-These are chunks from the candidate's resume. Use them to write project
-bullet points. Do NOT invent bullets not shown here.
-
-{{RELEVANT_CHUNKS}}
-
-### USER INSTRUCTIONS (optional)
-The user has provided extra details along with the JD. These may include:
-- corrected links (e.g. "use github.com/real-me")
-- role clarifications
-- things to emphasize or downplay
-- any other notes about the application
-
-Apply them EXACTLY as stated. Use corrected values instead of what is
-in the data. Only apply what is explicitly stated — do not invent.
-If empty, ignore this section.
-
+═══════════════════════════════════════════════════════════════════
+USER INSTRUCTIONS
+═══════════════════════════════════════════════════════════════════
 {{USER_INSTRUCTIONS}}
 
-### OUTPUT (JSON only)
+USER EXTRAS
+═══════════════════════════════════════════════════════════════════
+{{USER_EXTRAS}}
+
+RESUME
+═══════════════════════════════════════════════════════════════════
+{{RESUME_JSON}}
+
+JD
+═══════════════════════════════════════════════════════════════════
+{{JD_JSON}}
+
+CHUNKS
+═══════════════════════════════════════════════════════════════════
+{{RELEVANT_CHUNKS}}
+
+OUTPUT (JSON only):

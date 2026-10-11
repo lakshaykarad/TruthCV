@@ -1,77 +1,81 @@
-You are writing a cover letter for a real job application.
-Write ONLY the letter body. No headings, no markdown, no bullet points, no signature block.
+Write the BODY of a cover letter. Plain prose. No headings, no markdown,
+no bullets, no signature block. Start with "Dear Hiring Manager,".
 
-### CANDIDATE
-Name: {{CANDIDATE_NAME}}
-Contact: {{CONTACT_LINE}}
+═══════════════════════════════════════════════════════════════════
+FORMAT
+═══════════════════════════════════════════════════════════════════
+Exactly 3 paragraphs, under 250 words.
 
-### ROLE
-{{JOB_TITLE}} at {{COMPANY}}
+Paragraph 1 — OPENING
+- First sentence: "My name is {CANDIDATE_NAME}, and I am writing to apply
+  for the {JOB_TITLE} role at {COMPANY}."
+- If COMPANY is "(not provided)" or empty, write "at your company" — never
+  write "null".
+- Then 1-2 sentences connecting the candidate to this role.
 
-### KEY RESPONSIBILITIES OF THE ROLE
+Paragraph 2 — EVIDENCE
+- Mention 1-2 projects from TOP PROJECTS.
+- REWRITE in first person. Do NOT quote raw bullet text.
+  BAD: "ProjectName: Built X using Y."
+  GOOD: "I built ProjectName, where I designed X using Y."
+- Reference 2-3 matched skills, in first person, with their evidence.
+- Include a concrete number if the evidence has one.
+
+Paragraph 3 — CLOSE
+- Express interest, thank the reader, invite a next step.
+
+═══════════════════════════════════════════════════════════════════
+HONESTY RULES
+═══════════════════════════════════════════════════════════════════
+- Use ONLY facts shown below. Never invent.
+- Never claim a MISSING skill.
+- Never apologise for a missing skill.
+- Never claim a degree unless it's in EDUCATION.
+
+═══════════════════════════════════════════════════════════════════
+BANNED PHRASES
+═══════════════════════════════════════════════════════════════════
+passionate, leverage, synergy, dynamic, thrive, "eager to grow",
+"innovative culture", "strong analytical mindset", "rapid learning",
+"track record", "I am excited to", "I am thrilled", "hit the ground
+running", "team player".
+
+Tone: confident, specific, plain English.
+
+═══════════════════════════════════════════════════════════════════
+INPUTS
+═══════════════════════════════════════════════════════════════════
+CANDIDATE: {{CANDIDATE_NAME}}
+CONTACT: {{CONTACT_LINE}}
+
+ROLE: {{JOB_TITLE}} at {{COMPANY}}
+
+RESPONSIBILITIES
 {{RESPONSIBILITIES}}
 
-### MATCHED SKILLS
-These are real matches from the candidate's resume. Use the evidence as your source of truth.
+MATCHED SKILLS (with evidence)
 {{MATCHED_SKILLS}}
 
-### PARTIAL SKILLS
-Weaker matches — mention only if they add value.
+PARTIAL SKILLS (mention only if useful)
 {{PARTIAL_SKILLS}}
 
-### MISSING SKILLS
-The candidate does NOT have these. Do not claim them. Do not apologize for them.
+MISSING SKILLS (do not claim, do not apologise)
 {{MISSING_SKILLS}}
 
-### QUALIFICATIONS TO ADDRESS
+QUALIFICATIONS ASKED
 {{QUALIFICATIONS}}
 
-### SPECIAL NOTES
-{{STRETCH_NOTE}}
-
-If SPECIAL NOTES contains a length instruction, it OVERRIDES Rules 1 and 8 below.
-
-### CANDIDATE'S ACTUAL EDUCATION
+EDUCATION
 {{EDUCATION}}
 
-Rule 19: If the JD asks for a degree or field the candidate does NOT have,
-DO NOT claim it. Instead, either omit the topic or say nothing about degrees.
+TOP PROJECTS (rewrite in first person)
+{{TOP_PROJECTS}}
 
-### RULES
-1. Write exactly 3 paragraphs, under 250 words total.
-2. Paragraph 1 — Hook: why this candidate for THIS role at THIS company.
-3. Paragraph 2 — Evidence: pick 2-3 matched skills and reference their evidence text.
-   Quote specific projects or achievements where possible.
-4. Paragraph 3 — Close: express interest, thank them, invite the next step.
-5. NEVER invent skills, projects, companies, dates, or experience not shown above.
-6. NEVER write "I don't have experience with..." or "I lack..." or "unfortunately".
-7. For MISSING skills, do NOT mention them unless the JD treats them as core
-   requirements AND you can frame them positively (e.g., "actively expanding
-   my expertise in X"). Otherwise, omit them entirely.
-8. Tone: confident, professional, forward-looking. No flowery language.
-9. Use the candidate's real name. Never use placeholders like [Your Name].
-10. Plain prose only. No headings. No bullet points. No "Dear Hiring Manager"
-    is fine as a first line, but nothing else structured.
-11. NEVER invent numbers, metrics, or percentages. If the evidence
-    doesn't contain a number, don't add one.
-12. If MATCHED_SKILLS is "(none)", write a SHORT letter acknowledging
-    this is a stretch application and emphasizing transferable skills.
-    Do NOT claim the missing skills.
-13. NEVER claim a qualification unless it appears in the resume JSON.
-    If the resume shows "B.Com" and the JD asks for "CS degree", do NOT
-    write "I have a CS degree".
-14. If you don't have specific evidence for a claim, do not make the claim.
-15. OPEN with the candidate's full name. First sentence must include it.
-    Example: "My name is Sanjay Yogi, and I am writing to..."
-16. NEVER use these phrases: "I thrive in environments," "strong analytical
-    mindset," "rapid learning ability," "track record demonstrates,"
-    "capacity to adapt," "eager to grow," "passionate about,"
-    "dynamic," "leverage," "synergy," "innovative culture."
-17. Every paragraph must contain at least ONE specific fact from the evidence
-    above — a project name, technology, or achievement. No evidence = no claim.
-18. Do not reference anything not in the sections above. No LinkedIn, no
-    websites, no companies, no metrics unless they appear in the evidence.
+SPECIAL NOTES
+{{STRETCH_NOTE}}
 
+USER INSTRUCTIONS
+{{USER_INSTRUCTIONS}}
 
-### OUTPUT
-Begin your response with "Dear Hiring Manager," and write the full letter.
+OUTPUT
+Write the letter now. Start with "Dear Hiring Manager,".

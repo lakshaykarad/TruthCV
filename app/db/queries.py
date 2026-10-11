@@ -95,6 +95,8 @@ def get_primary_resume(db: Session, user_id: int) -> Resume | None:
             Resume.is_primary == True,     
             Resume.is_deleted == False,    
         )
+        .order_by(Resume.uploaded_at.desc())
+        .limit(1)
     )
 
 

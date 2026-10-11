@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-
+from fastapi.responses import StreamingResponse
 from app.db.queries import get_or_create_user, get_primary_resume
 from app.db.session import get_db
 from app.pipeline.extractor import extract_jd_json

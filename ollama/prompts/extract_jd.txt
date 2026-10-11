@@ -1,72 +1,31 @@
-You are a job-description (JD) JSON extractor. Output ONE JSON object.
+You convert a job description into JSON. Output ONLY ONE JSON object.
 
-### CRITICAL RULES
-1. Output ONLY valid JSON. No markdown, no commentary, no code fences.
-2. Never invent data. Missing scalar → null. Missing array → [].
-   ALWAYS include every field from the SCHEMA — even if the value is null or [].
-3. No duplicate items in any list.
-4. If a skill appears in two forms (e.g. "React" and "React.js"), keep
-   ONE — prefer the shorter form ("React").
+═══════════════════════════════════════════════════════════════════
+RULES
+═══════════════════════════════════════════════════════════════════
+1. Never invent. Missing text → null. Missing list → [].
+2. No duplicates. If a skill appears twice ("React" / "React.js"),
+   keep the shorter one.
+3. title = job title near the top.
+   company = hiring company. Null if absent.
+   location = city or "Remote". Null if absent.
+4. required_skills = technologies, tools, languages, frameworks, or
+   platforms marked as required.
+   - ONE item per skill. Never a full sentence.
+   - Strip qualifiers: "Strong proficiency in Python" → "Python".
+   - Split lists: "PostgreSQL and Redis" → two items.
+   - NO soft skills ("Communication", "Teamwork").
+   - NO years of experience (those go in qualifications).
+   - NO degree (that goes in qualifications).
+5. preferred_skills = skills marked "nice to have", "bonus", "preferred",
+   "a plus".
+6. responsibilities = day-to-day duties as short verb phrases. Start each
+   with a verb (Design, Build, Mentor, Lead, Review).
+7. qualifications = education, years of experience, certifications.
 
-### FIELD RULES
-- "title": The job title near the top of the JD. Null if unclear.
-- "company": The hiring company name. Null if not mentioned.
-- "location": City, or "Remote". Null if not mentioned.
-- "required_skills": Technologies, tools, languages, or frameworks listed
-  under "Requirements", "Must have", or marked as required.
-  - ONE skill per item. Never whole sentences.
-  - Do NOT include soft skills or traits ("Communication", "Teamwork",
-    "Problem-solving") unless they appear in the Requirements section as
-    explicit bullet points.
-  - Do NOT include years of experience here — those go in "qualifications".
-- "preferred_skills": Skills marked "nice to have", "bonus", "preferred",
-  or "would be a plus".
-- "responsibilities": Day-to-day duties written as verb phrases
-  ("Design REST APIs", "Mentor junior engineers").
-- "qualifications": Education, years of experience, certifications, or
-  non-skill prerequisites ("Bachelor's in CS", "3+ years experience").
-
-### EXAMPLE
-
-JD TEXT:
-Senior Backend Engineer at Stripe (Remote)
-We are looking for an experienced backend engineer to join our payments team.
-
-Requirements:
-- 5+ years of backend development experience
-- Strong proficiency in Python or Go
-- Experience with PostgreSQL and Redis
-- Familiarity with Docker and Kubernetes
-- Bachelor's degree in Computer Science or equivalent
-
-Nice to have:
-- Experience with FastAPI
-- Prior payments or fintech experience
-
-Responsibilities:
-- Design and build scalable REST APIs
-- Mentor junior engineers
-- Participate in on-call rotation
-
-OUTPUT:
-{
-  "title": "Senior Backend Engineer",
-  "company": "Stripe",
-  "location": "Remote",
-  "required_skills": ["Python", "Go", "PostgreSQL", "Redis", "Docker", "Kubernetes"],
-  "preferred_skills": ["FastAPI", "payments", "fintech"],
-  "responsibilities": [
-    "Design and build scalable REST APIs",
-    "Mentor junior engineers",
-    "Participate in on-call rotation"
-  ],
-  "qualifications": [
-    "5+ years of backend development experience",
-    "Bachelor's degree in Computer Science or equivalent"
-  ]
-}
-
-### SCHEMA
+═══════════════════════════════════════════════════════════════════
+SCHEMA
+═══════════════════════════════════════════════════════════════════
 {
   "title": "string or null",
   "company": "string or null",
@@ -77,7 +36,66 @@ OUTPUT:
   "qualifications": ["string"]
 }
 
-### JD TEXT
+═══════════════════════════════════════════════════════════════════
+EXAMPLE 1 — tech role
+═══════════════════════════════════════════════════════════════════
+JD:
+Backend Engineer at Stripe (Remote)
+Requirements:
+- 3+ years of backend development
+- Strong proficiency in Python or Go
+- PostgreSQL, Redis, Docker
+- Bachelor's degree in CS
+Nice to have:
+- FastAPI
+- fintech experience
+Responsibilities:
+- Design and build scalable REST APIs
+- Mentor junior engineers
+
+OUTPUT:
+{"title": "Backend Engineer", "company": "Stripe", "location": "Remote",
+ "required_skills": ["Python", "Go", "PostgreSQL", "Redis", "Docker"],
+ "preferred_skills": ["FastAPI", "fintech"],
+ "responsibilities": ["Design and build scalable REST APIs",
+                      "Mentor junior engineers"],
+ "qualifications": ["3+ years of backend development",
+                    "Bachelor's degree in CS"]}
+
+═══════════════════════════════════════════════════════════════════
+EXAMPLE 2 — non-tech role
+═══════════════════════════════════════════════════════════════════
+JD:
+Content Marketing Manager at Notion (New York, NY)
+Requirements:
+- 4+ years in content marketing or B2B SaaS
+- Strong SEO and copywriting skills
+- Experience with HubSpot, Google Analytics, Ahrefs
+- Bachelor's in Marketing, Communications, or similar
+Nice to have:
+- Video scripting experience
+- Familiarity with Notion
+
+Responsibilities:
+- Own the blog content calendar
+- Write long-form SEO articles
+- Collaborate with product on launch content
+
+OUTPUT:
+{"title": "Content Marketing Manager", "company": "Notion",
+ "location": "New York, NY",
+ "required_skills": ["SEO", "Copywriting", "HubSpot", "Google Analytics",
+                     "Ahrefs"],
+ "preferred_skills": ["Video scripting", "Notion"],
+ "responsibilities": ["Own the blog content calendar",
+                      "Write long-form SEO articles",
+                      "Collaborate with product on launch content"],
+ "qualifications": ["4+ years in content marketing or B2B SaaS",
+                    "Bachelor's in Marketing, Communications, or similar"]}
+
+═══════════════════════════════════════════════════════════════════
+JD TEXT
+═══════════════════════════════════════════════════════════════════
 {{TEXT}}
 
-### JSON
+JSON:

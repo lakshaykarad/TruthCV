@@ -14,7 +14,11 @@ from app.db.models import Resume
 from app.pipeline.retriever import find_similar_chunks_for_user
 from app.pipeline.scorer import score_match
 from app.config import settings
-load_dotenv()
+from app.pipeline.retriever import rank_projects
+from app.db.queries import get_primary_resume
+from app.db.models import Chunk
+
+load_dotenv()   
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +28,7 @@ PROMPT_DIR = settings.prompt_dir
 
 TOP_K_PER_QUESTION = settings.top_k
 MAX_QUESTIONS = settings.max_questions
-
+MAX_USER_INSTRUCTIONS_CHARS = 500
 _REFUSAL = "This question is outside the scope of a job application"
 def _load_prompt(name: str) -> str:
     """Load a prompt template by name. e.g. 'cover_letter' → cover_letter.txt"""
@@ -101,11 +105,11 @@ def _call_groq(
         raise ValueError(f"Empty LLM response (finish_reason={choice.finish_reason})")
     return choice.message.content.strip()
 
- 
 def generate_cover_letter(
     db: Session,
     resume_id: int,
     jd_json: dict[str, Any],
+    user_instructions: str = "",
 ) -> str:
     """Generate a cover letter for a specific JD + resume."""
     resume = db.get(Resume, resume_id)
@@ -127,6 +131,10 @@ def generate_cover_letter(
     else:
         extra_context = ""
 
+    user_instructions = _cap(
+        user_instructions, MAX_USER_INSTRUCTIONS_CHARS, "user_instructions"
+    )
+
     resume_json = resume.json_data or {}
     candidate_name = resume_json.get("name") or "Candidate"
 
@@ -135,9 +143,22 @@ def generate_cover_letter(
         if resume_json.get(field):
             contact_bits.append(resume_json[field])
     contact_line = " | ".join(contact_bits) if contact_bits else "(not provided)"
- 
-    # medium or week skilsl add here
+
     partial_items = required.get("partial") or required.get("weak") or []
+
+    # ── NEW: Rank projects and pass top 3 to the prompt ──
+    from app.pipeline.retriever import rank_projects
+    all_projects = resume_json.get("projects") or []
+    top_projects = rank_projects(db, resume_id, jd_json, all_projects, top_n=3)
+    project_names = [p.get("name", "") for p in top_projects if p.get("name")]
+    project_evidence = []
+    for p in top_projects:
+        bullets = (p.get("description") or [])[:3]
+        tech = ", ".join(p.get("tech") or [])
+        project_evidence.append(
+            f"- {p.get('name')} [{tech}]\n  " + "\n  ".join(bullets)
+        )
+    top_projects_text = "\n".join(project_evidence) if project_evidence else "(none)"
 
     template = _load_prompt("cover_letter")
     prompt = (
@@ -156,18 +177,19 @@ def generate_cover_letter(
                  _format_bullets(jd_json.get("qualifications") or []))
         .replace("{{STRETCH_NOTE}}", extra_context)
         .replace("{{EDUCATION}}", _format_education(resume_json))
+        .replace("{{TOP_PROJECTS}}", top_projects_text)
+        .replace("{{USER_INSTRUCTIONS}}", user_instructions or "(none)")
     )
 
     logger.info(
-        "Generating cover letter: resume=%d role='%s' company='%s' match=%d%%",
-        resume_id, jd_json.get("title"), jd_json.get("company"), match_pct,
+        "Generating cover letter: resume=%d role='%s' company='%s' match=%d%% top_projects=%s",
+        resume_id, jd_json.get("title"), jd_json.get("company"),
+        match_pct, project_names,
     )
 
-    # Plain text output: NO json_mode here
     text = _call_groq(prompt, effort="medium")
     logger.info("Cover letter generated: %d characters", len(text))
     return text
-
  
 MAX_USER_EXTRAS_CHARS = 500
 REQUIRED_NONEMPTY = ("summary", "skills", "projects")
@@ -192,15 +214,56 @@ def _fetch_relevant_chunks_text(
     db: Session,
     user_id: int,
     jd_json: dict[str, Any],
-    top_k: int = 15,
-) -> str: 
+    top_k: int = 20,
+) -> str:
+
+  
+    resume = get_primary_resume(db, user_id)
+    if resume is None:
+        return "(no resume)" 
+    
     query = _build_jd_query(jd_json)
-    chunks = find_similar_chunks_for_user(db, user_id, query, top_k=top_k)
-    if not chunks:
-        logger.warning("Retriever returned 0 chunks for query: %r", query)
-        return "(no relevant chunks found)"
-    logger.info("Retrieved %d relevant chunks", len(chunks))
-    return "\n".join(f"[{c['type']}] {c['text']}" for c in chunks)
+    skill_chunks = find_similar_chunks_for_user(db, user_id, query, top_k=10)
+
+    # 2. Top 3 projects, then grab ALL their project_detail chunks
+    all_projects = (resume.json_data or {}).get("projects") or []
+    top_projects = rank_projects(db, resume.id, jd_json, all_projects, top_n=3)
+    top_names = {(p.get("name") or "").lower() for p in top_projects}
+
+    all_rows = db.query(Chunk).filter(
+        Chunk.resume_id == resume.id,
+        Chunk.chunk_type.in_(["project", "project_detail"]),
+    ).all()
+
+    project_chunks: list[dict[str, Any]] = []
+    for row in all_rows:
+        text_low = row.text.lower()
+        if any(name and name in text_low for name in top_names):
+            project_chunks.append({
+                "text": row.text,
+                "type": row.chunk_type,
+            })
+ 
+    seen: set[str] = set()
+    combined: list[str] = []
+    for c in skill_chunks:
+        key = c["text"].strip().lower()
+        if key not in seen:
+            seen.add(key)
+            combined.append(f"[{c['type']}] {c['text']}")
+    for c in project_chunks:
+        key = c["text"].strip().lower()
+        if key not in seen:
+            seen.add(key)
+            combined.append(f"[{c['type']}] {c['text']}")
+
+    logger.info(
+        "Chunks → %d skill + %d project (total %d)",
+        len(skill_chunks), len(project_chunks), len(combined),
+    )
+    return "\n".join(combined) if combined else "(no relevant chunks found)"
+
+
 
 def _parse_and_validate(raw: str) -> dict[str, Any]:
     """Strip code fences, parse JSON, and reject empty/skeleton answers."""
@@ -266,10 +329,6 @@ def generate_tailored_resume(
         db, resume.user_id, jd_json, top_k=15,
     )
  
-    if user_extras and len(user_extras) > MAX_USER_EXTRAS_CHARS:
-        logger.warning("user_extras too long, truncating")
-        user_extras = user_extras[:MAX_USER_EXTRAS_CHARS]
-
     user_extras = _cap(user_extras, MAX_USER_EXTRAS_CHARS, "user_extras")
  
     template = _load_prompt("tailored_resume")
@@ -358,6 +417,7 @@ def _answer_one(
     jd_json : dict[str, Any],
     report : dict,
     question : str,
+    user_instructions: str = "",
 ) -> str:
     
     chunks = find_similar_chunks_for_user(db,resume.user_id, question, top_k=TOP_K_PER_QUESTION)
@@ -390,6 +450,7 @@ def _answer_one(
         .replace("{{RESPONSIBILITIES}}",
                  "\n".join(f"- {r}" for r in (jd_json.get("responsibilities") or []))
                  or "(none)")
+        .replace("{{USER_INSTRUCTIONS}}", user_instructions or "(none)")
         .replace("{{CHUNKS}}", evidence)
         .replace("{{QUESTION}}", question)
     )
@@ -407,7 +468,8 @@ def answer_questions(
     db : Session,
     resume_id : int,
     jd_json : dict[str, Any], 
-    questions : list[str]
+    questions : list[str],
+    user_instructions: str = "",
 ) -> list[dict[str,str]] :
     
     resume = db.get(Resume, resume_id)
@@ -433,8 +495,8 @@ def answer_questions(
     
     results: list[dict[str, str]] = []
     for q in questions:
-        try: 
-            answer = _answer_one(db, resume,jd_json,report,q)    
+        try:
+            answer = _answer_one(db, resume, jd_json, report, q, user_instructions)   
         except Exception as e:
             logger.error("Q failed: %r-%s", q[:60],e)
             answer = "Could not process this question."
