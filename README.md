@@ -110,7 +110,7 @@ Only the writing step uses the cloud. Extraction and embeddings stay on your mac
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/<your-username>/truthcv.git
+git clone https://github.com/lakshaykarad/truthcv.git
 cd truthcv
 
 python -m venv .venv
